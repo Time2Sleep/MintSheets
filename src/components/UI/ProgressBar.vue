@@ -29,6 +29,6 @@ const computedStyle = computed(() => {
     aria-valuemin="0"
     :aria-valuemax="max"
   >
-    <div :class="['h-2', colorClass]" :style="computedStyle"></div>
+    <div :class="['h-3', colorClass]" :style="computedStyle"></div>
   </div>
 </template>
