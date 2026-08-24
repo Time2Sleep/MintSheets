@@ -17,7 +17,7 @@ const props = withDefaults(
 );
 
 const max = computed(() => {
-  return props.maxLimit > 0 ? props.maxLimit : props.value;
+  return props.maxLimit > 0 ? props.maxLimit : Math.max(props.value, 0);
 });
 </script>
 
