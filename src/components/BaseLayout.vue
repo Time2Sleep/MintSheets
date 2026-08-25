@@ -14,7 +14,7 @@ import WrapperContainer from './UI/WrapperContainer.vue';
       <FinanceCard class="flex-1" title="Income" :value="100000" bar-color-class="bg-mint-primary" />
     </div>
 
-    <WrapperContainer>
+    <WrapperContainer :gap="4">
       <BaseInput placeholder="Input 1" />
       <BaseInput placeholder="Input 2" />
       <BaseInput placeholder="Input 3" />
