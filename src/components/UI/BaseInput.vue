@@ -12,17 +12,24 @@ const props = withDefaults(
 
 const value = defineModel<string | number>();
 
-const handleFocus = ({ target }: FocusEvent) => {
-  if (target && props.type === 'date') {
-    (target as HTMLInputElement).showPicker();
+const handleFocus = ({ target, isTrusted }: FocusEvent) => {
+  if (
+    !isTrusted ||
+    props.type !== 'date' ||
+    !navigator.userActivation?.isActive ||
+    !(target instanceof HTMLInputElement)
+  ) {
+    return;
   }
+
+  target.showPicker();
 };
 </script>
 
 <template>
   <input
     v-model="value"
-    class="bg-dark-primary text-light placeholder:text-light-secondary focus:outline-none focus:border-mint-primary rounded-xl p-3"
+    class="bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl p-3"
     :type="type"
     :placeholder="placeholder"
     @focus="handleFocus($event)"
