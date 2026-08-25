@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import ProgressBar from './ProgressBar.vue';
+import WrapperContainer from './WrapperContainer.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -22,11 +23,11 @@ const max = computed(() => {
 </script>
 
 <template>
-  <div class="bg-dark-secondary p-4 rounded-2xl">
+  <WrapperContainer>
     <div class="text-xl">{{ value.toLocaleString() }} {{ postfix }}</div>
 
     <div class="mb-4">{{ title }}</div>
 
     <progress-bar :value="value" :max="max" :color-class="barColorClass" />
-  </div>
+  </WrapperContainer>
 </template>
