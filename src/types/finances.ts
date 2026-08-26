@@ -7,5 +7,5 @@ export type Transaction = {
 };
 
 export type TransactionWithoutId = Omit<Transaction, 'id' | 'amount'> & {
-  amount?: number;
+  amount?: number | string;
 };

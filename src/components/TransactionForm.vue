@@ -14,10 +14,14 @@ const form = reactive<TransactionWithoutId>({
 });
 
 const options = ['Category 1', 'Category 2', 'Category 3'];
+
+const handleSubmit = () => {
+  console.log('Form submitted:', form);
+};
 </script>
 
 <template>
-  <form class="flex flex-col gap-4">
+  <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
     <BaseInput v-model="form.date" placeholder="Date" type="date" />
     <BaseSelect v-model="form.category" placeholder="Category" :options="options" />
     <BaseInput v-model.number="form.amount" placeholder="Amount" type="number" />
