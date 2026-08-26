@@ -4,6 +4,7 @@ import BaseInput from './UI/BaseInput.vue';
 import BaseSelect from './UI/BaseSelect.vue';
 import FinanceCard from './UI/FinanceCard.vue';
 import WrapperContainer from './UI/WrapperContainer.vue';
+import BaseButton from './UI/BaseButton.vue';
 
 const select = ref<string>('');
 </script>
@@ -23,6 +24,7 @@ const select = ref<string>('');
       <BaseSelect v-model="select" placeholder="Select 1" :options="['option 1', 'option 2']" />
       <BaseInput placeholder="Input 2" />
       <BaseInput placeholder="Input 3" />
+      <BaseButton>Confirm</BaseButton>
     </WrapperContainer>
 
     <WrapperContainer> List of transactions will be here... </WrapperContainer>
