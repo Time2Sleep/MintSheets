@@ -15,7 +15,7 @@ const value = defineModel<string>();
 <template>
   <select
     v-model="value"
-    :aria-label="placeholder"
+    :aria-label="placeholder || 'select'"
     class="select appearance-none block w-full bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl p-3"
     :class="{ 'text-light-secondary': !value }"
   >
