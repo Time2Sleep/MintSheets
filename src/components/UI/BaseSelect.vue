@@ -16,7 +16,7 @@ const value = defineModel<string>();
   <select
     v-model="value"
     :aria-label="placeholder || 'select'"
-    class="select appearance-none block w-full bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl p-3"
+    class="select appearance-none block w-full bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl p-3 pr-10"
     :class="{ 'text-light-secondary': !value }"
   >
     <option value="" disabled selected hidden>{{ placeholder }}</option>
