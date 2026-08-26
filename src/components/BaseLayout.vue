@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import BaseInput from './UI/BaseInput.vue';
+import BaseSelect from './UI/BaseSelect.vue';
 import FinanceCard from './UI/FinanceCard.vue';
 import WrapperContainer from './UI/WrapperContainer.vue';
+
+const select = ref<string>('');
 </script>
 
 <template>
@@ -16,6 +20,7 @@ import WrapperContainer from './UI/WrapperContainer.vue';
 
     <WrapperContainer :gap="4">
       <BaseInput placeholder="Input 1" />
+      <BaseSelect v-model="select" placeholder="Select 1" :options="['option 1', 'option 2']" />
       <BaseInput placeholder="Input 2" />
       <BaseInput placeholder="Input 3" />
     </WrapperContainer>
