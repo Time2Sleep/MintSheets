@@ -15,12 +15,13 @@ const value = defineModel<string>();
 <template>
   <select
     v-model="value"
+    :aria-label="placeholder"
     class="select appearance-none block w-full bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl p-3"
     :class="{ 'text-light-secondary': !value }"
   >
     <option value="" disabled selected hidden>{{ placeholder }}</option>
     <option v-for="option in options" :key="option" class="flex p-4" :value="option">
-      <div class="p-2 text-red-500">{{ option }}</div>
+      {{ option }}
     </option>
   </select>
 </template>
