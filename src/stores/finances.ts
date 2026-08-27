@@ -8,6 +8,8 @@ export const useFinanceStore = defineStore('finances', () => {
   const categories = ref<string[]>(['Food', 'Transport', 'Salary', 'Utilities']); // Example categories
 
   const addTransaction = (transaction: TransactionWithoutId) => {
+    if (!Number.isFinite(Number(transaction.amount))) return;
+
     transactions.value.push({ ...transaction, id: crypto.randomUUID(), amount: Number(transaction.amount) });
   };
 

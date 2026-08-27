@@ -20,10 +20,11 @@ const form = reactive<TransactionWithoutId>({
 });
 
 const isFormValid = computed<boolean>(() => {
-  return form.date !== '' && form.category !== '' && !!form.amount;
+  return form.date !== '' && form.category !== '' && Number.isFinite(Number(form.amount)) && Number(form.amount) > 0;
 });
 
 const handleSubmit = () => {
+  if (!isFormValid.value) return;
   financeStore.addTransaction({ ...form });
   clearForm();
 };

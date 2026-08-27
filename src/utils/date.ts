@@ -8,7 +8,7 @@ export const getTodayDateFormatted = (): string => {
 };
 
 export const isCurrentMonth = (dateString: string): boolean => {
-  const date = new Date(dateString);
+  const date = new Date(`${dateString}T00:00:00`);
   const today = new Date();
   return date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth();
 };
