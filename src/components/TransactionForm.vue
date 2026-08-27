@@ -1,31 +1,66 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { computed, reactive } from 'vue';
 import BaseButton from './UI/BaseButton.vue';
 import BaseInput from './UI/BaseInput.vue';
 import BaseSelect from './UI/BaseSelect.vue';
-import type { TransactionWithoutId } from '../types/finances.ts';
-import { getTodayDateFormatted } from '../utils/date.ts';
+import { TransactionTypes, type TransactionWithoutId } from '../types/finances';
+import { getTodayDateFormatted } from '../utils/date';
+import { useFinanceStore } from '../stores/finances';
+import { storeToRefs } from 'pinia';
+
+const financeStore = useFinanceStore();
+const { categories } = storeToRefs(financeStore);
 
 const form = reactive<TransactionWithoutId>({
   date: getTodayDateFormatted(),
   category: '',
   amount: undefined,
   comment: '',
+  type: TransactionTypes.SPENDING,
 });
 
-const options = ['Category 1', 'Category 2', 'Category 3'];
+const isFormValid = computed<boolean>(() => {
+  return form.date !== '' && form.category !== '' && !!form.amount;
+});
 
 const handleSubmit = () => {
-  console.log('Form submitted:', form);
+  financeStore.addTransaction({ ...form });
+  clearForm();
+};
+
+const clearForm = () => {
+  form.date = getTodayDateFormatted();
+  form.category = '';
+  form.amount = undefined;
+  form.comment = '';
+  form.type = TransactionTypes.SPENDING;
 };
 </script>
 
 <template>
   <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
     <BaseInput v-model="form.date" placeholder="Date" type="date" />
-    <BaseSelect v-model="form.category" placeholder="Category" :options="options" />
+
+    <div class="flex gap-4">
+      <BaseButton
+        class="flex-1"
+        :active="form.type === TransactionTypes.SPENDING"
+        @click.prevent="form.type = TransactionTypes.SPENDING"
+      >
+        Spending
+      </BaseButton>
+      <BaseButton
+        class="flex-1"
+        :active="form.type === TransactionTypes.INCOME"
+        @click.prevent="form.type = TransactionTypes.INCOME"
+      >
+        Income
+      </BaseButton>
+    </div>
+
+    <BaseSelect v-model="form.category" placeholder="Category" :options="categories" />
     <BaseInput v-model.number="form.amount" placeholder="Amount" type="number" />
     <BaseInput v-model="form.comment" placeholder="Comment" />
-    <BaseButton>Confirm</BaseButton>
+    <BaseButton type="submit" :disabled="!isFormValid">Confirm</BaseButton>
   </form>
 </template>

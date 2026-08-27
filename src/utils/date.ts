@@ -6,3 +6,9 @@ export const getTodayDateFormatted = (): string => {
 
   return `${year}-${month}-${day}`;
 };
+
+export const isCurrentMonth = (dateString: string): boolean => {
+  const date = new Date(dateString);
+  const today = new Date();
+  return date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth();
+};
