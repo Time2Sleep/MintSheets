@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 
 export const useGoogleStore = defineStore('google', () => {
   const googleToken = ref<string | null>(null);
+  const isAuthError = ref<boolean>(false);
 
   const isConnected = computed(() => !!googleToken.value);
 
@@ -19,5 +20,6 @@ export const useGoogleStore = defineStore('google', () => {
     isConnected,
     setGoogleToken,
     logoutGoogle,
+    isAuthError,
   };
 });

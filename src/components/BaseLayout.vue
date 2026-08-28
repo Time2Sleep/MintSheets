@@ -13,14 +13,12 @@ const financeStore = useFinanceStore();
 const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
 
 const googleStore = useGoogleStore();
-const { isConnected } = storeToRefs(googleStore);
+const { isConnected, isAuthError } = storeToRefs(googleStore);
 </script>
 
 <template>
   <div class="flex flex-col gap-4 px-4 py-6">
-    <BaseButton v-if="!isConnected" @click="loginWithGoogle">Sign In</BaseButton>
-
-    <template v-else>
+    <template v-if="isConnected">
       <h1 class="text-2xl">Hello, User!</h1>
 
       <div class="flex gap-4">
@@ -48,6 +46,11 @@ const { isConnected } = storeToRefs(googleStore);
       <WrapperContainer>
         <TransactionsList />
       </WrapperContainer>
+    </template>
+
+    <template v-else>
+      <BaseButton @click="loginWithGoogle">Sign In</BaseButton>
+      <div v-if="isAuthError" class="text-red-primary">Sorry, something went wrong there. Try again.</div>
     </template>
   </div>
 </template>

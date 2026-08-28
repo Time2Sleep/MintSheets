@@ -3,20 +3,9 @@ import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import './style.css';
 import App from './App.vue';
-import { initGoogleAuth, loadGoogleSDK } from './services/googleAuth';
-import { useGoogleStore } from './stores/google';
+import { initGoogle } from './services/googleAuth';
 
-loadGoogleSDK()
-  .then(() => {
-    initGoogleAuth((token) => {
-      const googleStore = useGoogleStore();
-      googleStore.setGoogleToken(token);
-    });
-  })
-  .catch((err) => {
-    console.warn('Google SDK failed to load. Working in offline mode.', err);
-  });
-
+initGoogle();
 const pinia = createPinia();
 const app = createApp(App);
 

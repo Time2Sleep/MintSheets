@@ -1,8 +1,24 @@
 import type { TokenClient, TokenResponse } from '../types/google';
+import { useGoogleStore } from '../stores/google';
 
 let tokenClient: TokenClient | null = null;
 
-export const loadGoogleSDK = (): Promise<void> => {
+export const initGoogle = () => {
+  loadGoogleSDK()
+    .then(() => {
+      initGoogleAuth((token) => {
+        const googleStore = useGoogleStore();
+        googleStore.setGoogleToken(token);
+        googleStore.isAuthError = false;
+      });
+    })
+    .catch((err) => {
+      console.warn('Google SDK failed to load. Working in offline mode.', err);
+      useGoogleStore().isAuthError = true;
+    });
+};
+
+const loadGoogleSDK = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (window.google?.accounts?.oauth2) {
       return resolve();
@@ -19,7 +35,7 @@ export const loadGoogleSDK = (): Promise<void> => {
   });
 };
 
-export const initGoogleAuth = (onTokenReceived: (token: string) => void): void => {
+const initGoogleAuth = (onTokenReceived: (token: string) => void): void => {
   if (!window.google?.accounts?.oauth2) {
     console.warn('Google SDK is not loaded yet');
     return;
