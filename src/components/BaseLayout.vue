@@ -4,9 +4,10 @@ import FinanceCard from './UI/FinanceCard.vue';
 import WrapperContainer from './UI/WrapperContainer.vue';
 import { useFinanceStore } from '../stores/finances';
 import { storeToRefs } from 'pinia';
+import TransactionsList from './UI/TransactionsList.vue';
 
 const financeStore = useFinanceStore();
-const { monthSpending, monthIncome, transactionsReversed } = storeToRefs(financeStore);
+const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
 </script>
 
 <template>
@@ -14,9 +15,21 @@ const { monthSpending, monthIncome, transactionsReversed } = storeToRefs(finance
     <h1 class="text-2xl">Hello, User!</h1>
 
     <div class="flex gap-4">
-      <FinanceCard class="flex-1" title="Spending" :value="monthSpending" bar-color-class="bg-red-primary" />
+      <FinanceCard
+        class="flex-1"
+        title="Spending"
+        :value="monthSpending"
+        bar-color-class="bg-red-primary"
+        :postfix="currency"
+      />
 
-      <FinanceCard class="flex-1" title="Income" :value="monthIncome" bar-color-class="bg-mint-primary" />
+      <FinanceCard
+        class="flex-1"
+        title="Income"
+        :value="monthIncome"
+        bar-color-class="bg-mint-primary"
+        :postfix="currency"
+      />
     </div>
 
     <WrapperContainer :gap="4">
@@ -24,21 +37,7 @@ const { monthSpending, monthIncome, transactionsReversed } = storeToRefs(finance
     </WrapperContainer>
 
     <WrapperContainer>
-      <!-- TODO: Implement transaction list -->
-      <h2 class="text-xl pb-2">Transactions</h2>
-      <p v-if="!transactionsReversed.length" class="text-light-secondary">No transactions yet</p>
-      <ul v-else class="flex flex-col gap-4">
-        <li
-          v-for="transaction in transactionsReversed"
-          :key="transaction.id"
-          class="grid grid-cols-2 text-light-secondary text-sm border-b border-light-secondary pb-2"
-        >
-          <span>{{ transaction.date }}</span>
-          <span class="text-right">{{ transaction.category }}</span>
-          <span>{{ transaction.comment }}</span>
-          <span class="text-right">{{ transaction.amount }}</span>
-        </li>
-      </ul>
+      <TransactionsList />
     </WrapperContainer>
   </div>
 </template>
