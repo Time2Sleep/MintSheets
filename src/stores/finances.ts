@@ -29,7 +29,7 @@ export const useFinanceStore = defineStore(
     });
 
     const transactionsFormatted = computed<Record<string, Transaction[]>>(() => {
-      return transactions.value
+      return [...transactions.value]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .reduce(
           (acc, cur) => {
