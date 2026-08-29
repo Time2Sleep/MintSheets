@@ -1,5 +1,6 @@
 import type { TokenClient, TokenResponse } from '../types/google';
 import { useGoogleStore } from '../stores/google';
+import { router } from '../router';
 
 let tokenClient: TokenClient | null = null;
 
@@ -10,6 +11,8 @@ export const initGoogle = () => {
         const googleStore = useGoogleStore();
         googleStore.setGoogleToken(token);
         googleStore.isAuthError = false;
+
+        router.push({ name: 'main' });
       });
     })
     .catch((err) => {

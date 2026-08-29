@@ -1,56 +1,34 @@
 <script setup lang="ts">
-import TransactionForm from './TransactionForm.vue';
-import FinanceCard from './UI/FinanceCard.vue';
-import WrapperContainer from './UI/WrapperContainer.vue';
-import { useFinanceStore } from '../stores/finances';
-import { storeToRefs } from 'pinia';
-import TransactionsList from './UI/TransactionsList.vue';
-import BaseButton from './UI/BaseButton.vue';
-import { loginWithGoogle } from '../services/googleAuth';
-import { useGoogleStore } from '../stores/google';
+import { useRoute } from 'vue-router';
+import { computed } from 'vue';
+import { router } from '../router';
 
-const financeStore = useFinanceStore();
-const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
-
-const googleStore = useGoogleStore();
-const { isConnected, isAuthError } = storeToRefs(googleStore);
+const { name, meta } = useRoute();
+const isBackButtonShown = computed(() => name !== 'main');
+const goBack = () => {
+  router.go(-1);
+};
 </script>
-
 <template>
-  <div class="flex flex-col gap-4 px-4 py-6">
-    <template v-if="isConnected">
-      <h1 class="text-2xl">Hello, User!</h1>
-
-      <div class="flex gap-4">
-        <FinanceCard
-          class="flex-1"
-          title="Spending"
-          :value="monthSpending"
-          bar-color-class="bg-red-primary"
-          :postfix="currency"
+  <div class="flex items-center gap-6">
+    <button v-if="isBackButtonShown" class="flex items-center gap-2 w-fit" @click="goBack">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        fill="currentColor"
+        class="w-[24px] h-[24px]"
+        viewBox="0 0 16 16"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"
         />
+      </svg>
+    </button>
 
-        <FinanceCard
-          class="flex-1"
-          title="Income"
-          :value="monthIncome"
-          bar-color-class="bg-mint-primary"
-          :postfix="currency"
-        />
-      </div>
-
-      <WrapperContainer :gap="4">
-        <TransactionForm />
-      </WrapperContainer>
-
-      <WrapperContainer>
-        <TransactionsList />
-      </WrapperContainer>
-    </template>
-
-    <template v-else>
-      <BaseButton @click="loginWithGoogle">Sign In</BaseButton>
-      <div v-if="isAuthError" class="text-red-primary">Sorry, something went wrong there. Try again.</div>
-    </template>
+    <h1 class="text-2xl">{{ meta.title }}</h1>
   </div>
+
+  <slot />
 </template>
