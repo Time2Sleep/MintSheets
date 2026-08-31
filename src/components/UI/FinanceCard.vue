@@ -23,7 +23,7 @@ const max = computed(() => {
 </script>
 
 <template>
-  <WrapperContainer>
+  <WrapperContainer class="active:scale-98 transition-transform duration-200">
     <div class="text-xl">{{ value.toLocaleString() }} {{ postfix }}</div>
 
     <div class="mb-4">{{ title }}</div>

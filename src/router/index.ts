@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router';
 import AuthView from '../components/views/AuthView.vue';
 import MainView from '../components/views/MainView.vue';
 import AnalyticsView from '../components/views/AnalyticsView.vue';
-import HistoryView from '../components/views/HistoryView.vue';
 import { useGoogleStore } from '../stores/google';
 
 const routes = [
@@ -22,12 +21,6 @@ const routes = [
     name: 'analytics',
     component: AnalyticsView,
     meta: { requiresAuth: true, title: 'Analytics' },
-  },
-  {
-    path: '/history',
-    name: 'history',
-    component: HistoryView,
-    meta: { requiresAuth: true, title: 'Transactions' },
   },
 ];
 
