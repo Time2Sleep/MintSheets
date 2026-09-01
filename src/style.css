@@ -29,6 +29,7 @@ body {
   width: 100vw;
   max-width: 448px;
   color: var(--color-light-primary);
+  position: relative;
 }
 
 input::-webkit-outer-spin-button,

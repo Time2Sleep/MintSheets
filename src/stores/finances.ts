@@ -28,24 +28,26 @@ export const useFinanceStore = defineStore(
         .reduce((total, transaction) => total + transaction.amount, 0);
     });
 
-    const transactionsFormatted = computed<Record<string, Transaction[]>>(() => {
-      return [...transactions.value]
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .reduce(
-          (acc, cur) => {
-            const date = dateToHumanReadable(cur.date);
-            const existingField = acc[date];
+    const transactionsSorted = computed<Transaction[]>(() => {
+      return [...transactions.value].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    });
 
-            if (existingField) {
-              acc[date].push(cur);
-            } else {
-              acc[date] = [cur];
-            }
+    const groupTransactions = (list: Transaction[]): Record<string, Transaction[]> => {
+      return list.reduce(
+        (acc, cur) => {
+          const date = dateToHumanReadable(cur.date);
+          if (!acc[date]) {
+            acc[date] = [];
+          }
+          acc[date].push(cur);
+          return acc;
+        },
+        {} as Record<string, Transaction[]>,
+      );
+    };
 
-            return acc;
-          },
-          {} as Record<string, Transaction[]>,
-        );
+    const allTransactionsGrouped = computed(() => {
+      return groupTransactions(transactionsSorted.value);
     });
 
     return {
@@ -54,7 +56,7 @@ export const useFinanceStore = defineStore(
       monthIncome,
       monthSpending,
       addTransaction,
-      transactionsFormatted,
+      allTransactionsGrouped,
       currency,
     };
   },
