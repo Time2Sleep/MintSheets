@@ -4,16 +4,27 @@ import FinanceCard from '../UI/FinanceCard.vue';
 import WrapperContainer from '../UI/WrapperContainer.vue';
 import { useFinanceStore } from '../../stores/finances';
 import { storeToRefs } from 'pinia';
-import TransactionsList from '../UI/TransactionsList.vue';
+import TransactionsList from '../TransactionsList.vue';
+import { onMounted, ref } from 'vue';
 
 const financeStore = useFinanceStore();
 const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
+
+const content = ref<HTMLElement | null>(null);
+
+const offsetHeight = ref(0);
+
+const bottomSheetExpanded = ref(false);
+
+onMounted(() => {
+  offsetHeight.value = content.value?.offsetHeight || 0;
+});
 </script>
 
 <template>
-  <div class="sticky top-6 bg-linear-to-b from-dark-primary to-transparent from-90% pb-4">
-    <h1 class="text-2xl mb-4">Hello, User!</h1>
-    <RouterLink to="analytics" class="flex gap-4">
+  <div ref="content">
+    <h1 class="text-2xl pb-4 pt-6">Hello, User!</h1>
+    <RouterLink to="analytics" class="flex gap-4 mb-4">
       <FinanceCard
         class="flex-1"
         title="Spending"
@@ -30,14 +41,19 @@ const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
         :postfix="currency"
       />
     </RouterLink>
+
+    <WrapperContainer
+      :gap="4"
+      class="mb-4 transition-opacity duration-300 ease-in-out"
+      :class="{ 'opacity-0': bottomSheetExpanded }"
+    >
+      <TransactionForm />
+    </WrapperContainer>
   </div>
 
-  <WrapperContainer :gap="4" class="mb-4">
-    <TransactionForm />
-  </WrapperContainer>
-
-  <WrapperContainer class="flex-1 overflow-hidden rounded-br-none rounded-bl-none">
-    <div class="h-[5px] min-h-[5px] mx-auto rounded bg-light-secondary w-[50px] mb-4"></div>
-    <TransactionsList />
-  </WrapperContainer>
+  <TransactionsList
+    v-if="offsetHeight"
+    :offset="offsetHeight"
+    @expand="(expanded) => (bottomSheetExpanded = expanded)"
+  />
 </template>
