@@ -12,12 +12,12 @@ export const initGoogle = () => {
         googleStore.setGoogleToken(token);
         googleStore.isAuthError = false;
 
-        router.push({ name: 'main' });
-
         try {
           console.log('[Auth Service] initializing cloud spreadsheet...');
           await googleStore.findOrCreateSpreadsheet();
           console.log('[Auth Service] Cloud spreadsheet successfully linked to session!');
+
+          router.push({ name: 'main' });
         } catch (error) {
           console.warn('[Auth Service] Critical error while preparing spreadsheet:', error);
           googleStore.isAuthError = true;
@@ -67,7 +67,7 @@ const authenticateWithGoogle = (onTokenReceived: (token: string) => void): Promi
     try {
       tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: clientId,
-        scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
+        scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.metadata.readonly',
         callback: (response: TokenResponse) => {
           if (response.error) {
             console.warn('OAuth Error:', response.error);

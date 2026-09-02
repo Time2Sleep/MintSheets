@@ -2,7 +2,9 @@ import { apiClient } from '.';
 import type { CreateSpreadsheetResponse, GoogleDriveFilesReponse } from '../types/api';
 
 export const findSpreadsheetByTitle = async (title: string): Promise<string | null> => {
-  const query = `name = '${title}' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`;
+  const escapedTitle = title.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+  const query = `name = '${escapedTitle}' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`;
 
   const response = await apiClient.get<GoogleDriveFilesReponse>('https://www.googleapis.com/drive/v3/files', {
     params: {

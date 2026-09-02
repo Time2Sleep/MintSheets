@@ -8,8 +8,6 @@ export interface CreateSpreadsheetResponse {
 
 export interface GoogleDriveFile {
   id: string;
-  name: string;
-  mimeType: string;
 }
 
 export interface GoogleDriveFilesReponse {

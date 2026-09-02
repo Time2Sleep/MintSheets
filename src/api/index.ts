@@ -3,6 +3,7 @@ import { useGoogleStore } from '../stores/google';
 
 export const apiClient = axios.create({
   baseURL: 'https://sheets.googleapis.com/v4/spreadsheets',
+  timeout: 10000,
 });
 
 apiClient.interceptors.request.use(

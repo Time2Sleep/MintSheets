@@ -4,6 +4,7 @@ import { createSpreadsheet, findSpreadsheetByTitle } from '../api/sheets';
 
 export const useGoogleStore = defineStore('google', () => {
   const googleToken = ref<string | null>(null);
+  const spreadsheetId = ref<string | null>(null);
   const isAuthError = ref<boolean>(false);
 
   const isConnected = computed(() => !!googleToken.value);
@@ -17,15 +18,30 @@ export const useGoogleStore = defineStore('google', () => {
   };
 
   const findOrCreateSpreadsheet = async () => {
-    const title = 'MintSheets_financial_spreadsheet_MVP';
+    const localId = localStorage.getItem('mints_spreadsheet_id');
 
-    let spreadsheetId = await findSpreadsheetByTitle(title);
-
-    if (!spreadsheetId) {
-      spreadsheetId = await createSpreadsheet(title);
+    if (localId) {
+      spreadsheetId.value = localId;
+      return;
     }
 
-    console.log('Spreadsheet ID:', spreadsheetId);
+    const title = 'MintSheets_financial_spreadsheet_MVP';
+
+    let id = await findSpreadsheetByTitle(title);
+
+    const doubleCheckId = localStorage.getItem('mints_spreadsheet_id');
+    if (!id) {
+      if (doubleCheckId) {
+        spreadsheetId.value = doubleCheckId;
+        return;
+      }
+
+      id = await createSpreadsheet(title);
+    }
+
+    localStorage.setItem('mints_spreadsheet_id', id);
+    spreadsheetId.value = id;
+    console.log('Spreadsheet ID:', id);
   };
 
   return {
