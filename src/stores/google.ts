@@ -15,6 +15,8 @@ export const useGoogleStore = defineStore('google', () => {
 
   const logoutGoogle = () => {
     googleToken.value = null;
+    spreadsheetId.value = null;
+    localStorage.removeItem('mints_spreadsheet_id');
   };
 
   const findOrCreateSpreadsheet = async () => {
