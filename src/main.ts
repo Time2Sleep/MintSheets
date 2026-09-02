@@ -8,10 +8,11 @@ import { router } from './router';
 import { vSwipeDown, vSwipeUp } from './directives/swipe';
 
 initGoogle();
-const pinia = createPinia();
-const app = createApp(App);
 
+const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
+
+const app = createApp(App);
 app.use(pinia);
 app.use(router);
 app.directive('swipe-up', vSwipeUp);

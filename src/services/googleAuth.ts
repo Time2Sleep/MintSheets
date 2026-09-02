@@ -7,12 +7,21 @@ let tokenClient: TokenClient | null = null;
 export const initGoogle = () => {
   loadGoogleSDK()
     .then(() => {
-      initGoogleAuth((token) => {
+      authenticateWithGoogle(async (token) => {
         const googleStore = useGoogleStore();
         googleStore.setGoogleToken(token);
         googleStore.isAuthError = false;
 
         router.push({ name: 'main' });
+
+        try {
+          console.log('[Auth Service] initializing cloud spreadsheet...');
+          await googleStore.findOrCreateSpreadsheet();
+          console.log('[Auth Service] Cloud spreadsheet successfully linked to session!');
+        } catch (error) {
+          console.warn('[Auth Service] Critical error while preparing spreadsheet:', error);
+          googleStore.isAuthError = true;
+        }
       });
     })
     .catch((err) => {
@@ -38,7 +47,7 @@ const loadGoogleSDK = (): Promise<void> => {
   });
 };
 
-const initGoogleAuth = (onTokenReceived: (token: string) => void): Promise<void> => {
+const authenticateWithGoogle = (onTokenReceived: (token: string) => void): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (!window.google?.accounts?.oauth2) {
       const err = new Error('Google SDK is not loaded');
@@ -58,7 +67,7 @@ const initGoogleAuth = (onTokenReceived: (token: string) => void): Promise<void>
     try {
       tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: clientId,
-        scope: 'https://www.googleapis.com/auth/spreadsheets',
+        scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
         callback: (response: TokenResponse) => {
           if (response.error) {
             console.warn('OAuth Error:', response.error);
