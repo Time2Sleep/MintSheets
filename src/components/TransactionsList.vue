@@ -39,7 +39,7 @@ const style = computed(() => {
   const offset = contentHeight.value + props.offset;
 
   return {
-    transform: `translateY(calc(${offset}px - 100vh)`,
+    transform: `translateY(calc(${offset}px - 100vh))`,
   };
 });
 
