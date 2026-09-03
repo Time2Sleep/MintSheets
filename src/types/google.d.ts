@@ -21,7 +21,7 @@ export interface TokenResponse {
 }
 
 export interface TokenClient {
-  requestAccessToken: (options?: { prompt?: 'none' | 'consent' | 'select_account' }) => void;
+  requestAccessToken: (options?: { prompt?: 'none' | 'consent' | 'select_account' | '' }) => void;
 }
 
 export interface GoogleAccountsOAuth2 {
