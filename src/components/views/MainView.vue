@@ -6,9 +6,13 @@ import { useFinanceStore } from '../../stores/finances';
 import { storeToRefs } from 'pinia';
 import TransactionsList from '../TransactionsList.vue';
 import { onMounted, ref } from 'vue';
+import { useGoogleStore } from '../../stores/google';
 
 const financeStore = useFinanceStore();
 const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
+
+const googleStore = useGoogleStore();
+const { isOffline } = storeToRefs(googleStore);
 
 const content = ref<HTMLElement | null>(null);
 
@@ -23,7 +27,12 @@ onMounted(() => {
 
 <template>
   <div ref="content">
-    <h1 class="text-2xl pb-4 pt-6">Hello, User!</h1>
+    <div class="flex justify-between items-center pb-4 pt-6">
+      <h1 class="text-2xl">Hello, User!</h1>
+
+      <p v-if="isOffline" class="rounded-xl bg-red-secondary text-red-primary px-4">Offline</p>
+    </div>
+
     <RouterLink to="analytics" class="flex gap-4 mb-4">
       <FinanceCard
         class="flex-1"

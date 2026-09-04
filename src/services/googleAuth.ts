@@ -7,8 +7,9 @@ let tokenClient: TokenClient | null = null;
 export const initGoogle = () => {
   loadGoogleSDK()
     .then(() => {
-      authenticateWithGoogle(async (token) => {
-        const googleStore = useGoogleStore();
+      const googleStore = useGoogleStore();
+
+      return authenticateWithGoogle(async (token) => {
         googleStore.setGoogleToken(token);
         googleStore.isAuthError = false;
 
@@ -25,8 +26,8 @@ export const initGoogle = () => {
       });
     })
     .catch((err) => {
-      console.warn('Google SDK failed to load. Working in offline mode.', err);
-      useGoogleStore().isAuthError = true;
+      console.warn(err);
+      useGoogleStore().turnOfflineModeOn();
     });
 };
 
@@ -40,8 +41,23 @@ const loadGoogleSDK = (): Promise<void> => {
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = (err) => reject(err);
+
+    const timeout = setTimeout(() => {
+      script.onerror = null; // Clear handlers to prevent memory leaks
+      script.onload = null;
+      script.remove(); // Remove the stalled script tag from the DOM
+      reject(new Error('Google SDK failed to load. Working in offline mode'));
+    }, 1000);
+
+    script.onload = () => {
+      clearTimeout(timeout);
+      resolve();
+    };
+
+    script.onerror = (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    };
 
     document.head.appendChild(script);
   });
@@ -94,6 +110,14 @@ const authenticateWithGoogle = (onTokenReceived: (token: string) => void): Promi
 export const loginWithGoogle = (): void => {
   if (tokenClient) {
     tokenClient.requestAccessToken({ prompt: 'select_account' });
+  } else {
+    console.warn('Token client is not initialized');
+  }
+};
+
+export const refreshGoogleToken = (): void => {
+  if (tokenClient) {
+    tokenClient.requestAccessToken({ prompt: '' });
   } else {
     console.warn('Token client is not initialized');
   }

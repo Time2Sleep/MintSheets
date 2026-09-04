@@ -7,9 +7,13 @@ import { TransactionTypes, type TransactionWithoutId } from '../types/finances';
 import { getTodayDateFormatted } from '../utils/date';
 import { useFinanceStore } from '../stores/finances';
 import { storeToRefs } from 'pinia';
+import { refreshGoogleToken } from '../services/googleAuth';
+import { useGoogleStore } from '../stores/google';
 
 const financeStore = useFinanceStore();
 const { categories } = storeToRefs(financeStore);
+
+const googleStore = useGoogleStore();
 
 const form = reactive<TransactionWithoutId>({
   date: getTodayDateFormatted(),
@@ -27,10 +31,13 @@ const handleSubmit = () => {
   if (!isFormValid.value) return;
   financeStore.addTransaction({ ...form });
   clearForm();
+
+  if (!googleStore.googleToken) {
+    refreshGoogleToken();
+  }
 };
 
 const clearForm = () => {
-  form.date = getTodayDateFormatted();
   form.category = '';
   form.amount = undefined;
   form.comment = '';
