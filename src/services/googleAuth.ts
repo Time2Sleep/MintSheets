@@ -9,7 +9,7 @@ export const initGoogle = () => {
     .then(() => {
       const googleStore = useGoogleStore();
 
-      authenticateWithGoogle(async (token) => {
+      return authenticateWithGoogle(async (token) => {
         googleStore.setGoogleToken(token);
         googleStore.isAuthError = false;
 

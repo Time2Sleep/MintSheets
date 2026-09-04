@@ -34,9 +34,9 @@ router.beforeEach((to) => {
   const googleStore = useGoogleStore();
   const isAuthRequired = to.meta.requiresAuth;
   const isAuthenticated = !!googleStore.googleToken;
-  const { isOffline } = storeToRefs(googleStore);
+  const { isOffline, mintsWasConnected } = storeToRefs(googleStore);
 
-  if (isAuthRequired && !isAuthenticated && !isOffline.value) {
+  if (isAuthRequired && !isAuthenticated && (!isOffline.value || !mintsWasConnected.value)) {
     return { name: 'auth' };
   } else if (to.name === 'auth' && isAuthenticated) {
     return { name: 'main' };
