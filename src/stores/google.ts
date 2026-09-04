@@ -4,6 +4,7 @@ import { createSpreadsheet, findSpreadsheetByTitle } from '../api/sheets';
 import { router } from '../router';
 
 const LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME = 'mintsheets_spreadsheet_id';
+const LOCAL_STORAGE_MINTS_WAS_CONNECTED = 'mints_was_connected';
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
 export const useGoogleStore = defineStore('google', () => {
@@ -13,12 +14,12 @@ export const useGoogleStore = defineStore('google', () => {
   const isAuthError = ref<boolean>(false);
   const isOffline = ref<boolean>(false);
   const isConnected = computed(() => !!googleToken.value);
-  const mintsWasConnected = ref<boolean>(!!localStorage.getItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME));
+  const mintsWasConnected = ref<boolean>(!!localStorage.getItem(LOCAL_STORAGE_MINTS_WAS_CONNECTED));
 
   const setGoogleToken = (token: string | null) => {
     googleToken.value = token;
     mintsWasConnected.value = true;
-    localStorage.setItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME, 'true');
+    localStorage.setItem(LOCAL_STORAGE_MINTS_WAS_CONNECTED, 'true');
 
     if (logoutTimer) {
       clearTimeout(logoutTimer);
