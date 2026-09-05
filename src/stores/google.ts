@@ -1,7 +1,14 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { createSpreadsheet, findSpreadsheetByTitle } from '../api/sheets';
+import {
+  appendSpreadsheetRows,
+  batchUpdateSpreadsheet,
+  createSpreadsheet,
+  findSpreadsheetById,
+  findSpreadsheetByTitle,
+} from '../api/sheets';
 import { router } from '../router';
+import { buildRenameSheetRequest, buildAddSheetRequest, buildBoldtextRequest } from '../utils/requestsFactory';
 
 const LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME = 'mintsheets_spreadsheet_id';
 const LOCAL_STORAGE_MINTS_WAS_CONNECTED = 'mints_was_connected';
@@ -43,8 +50,12 @@ export const useGoogleStore = defineStore('google', () => {
     const localId = localStorage.getItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME);
 
     if (localId) {
-      spreadsheetId.value = localId;
-      return;
+      const foundById = await findSpreadsheetById(localId);
+
+      if (foundById) {
+        spreadsheetId.value = localId;
+        return;
+      }
     }
 
     const title = 'MintSheets_financial_spreadsheet_MVP';
@@ -59,10 +70,37 @@ export const useGoogleStore = defineStore('google', () => {
       }
 
       id = await createSpreadsheet(title);
+      _initSpreadsheet(id);
     }
 
     localStorage.setItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME, id);
     spreadsheetId.value = id;
+  };
+
+  const _initSpreadsheet = async (id: string) => {
+    try {
+      const sheets = await batchUpdateSpreadsheet(id, [
+        buildRenameSheetRequest(0, 'Total'),
+        buildAddSheetRequest('Transactions'),
+      ]);
+
+      const totalHeaders = [['Initial Balance', '0'], [], ['Categories']];
+      await appendSpreadsheetRows(id, 'Total!A1', totalHeaders);
+
+      const transactionHeaders = [['Date', 'Type', 'Category', 'Amount', 'Comment']];
+      await appendSpreadsheetRows(id, 'Transactions!A1', transactionHeaders);
+
+      const transactionsSheetId = sheets.replies[1].addSheet.properties.sheetId;
+
+      if (!transactionsSheetId) return;
+
+      await batchUpdateSpreadsheet(id, [
+        buildBoldtextRequest(0, 0, 3, 0, 1),
+        buildBoldtextRequest(transactionsSheetId, 0, 1, 0, 5),
+      ]);
+    } catch (err) {
+      console.warn('Error during spreadsheets initializtion', err);
+    }
   };
 
   const turnOfflineModeOn = () => {
