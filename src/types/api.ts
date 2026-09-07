@@ -13,3 +13,26 @@ export interface GoogleDriveFile {
 export interface GoogleDriveFilesReponse {
   files: GoogleDriveFile[];
 }
+
+export interface AppendValuesResponse {
+  spreadsheetId: string;
+  tableRange: string;
+  updates: {
+    spreadsheetId: string;
+    updatedRange: string;
+    updatedRows: number;
+    updatedColumns: number;
+    updatedCells: number;
+  };
+}
+
+export interface BatchUpdateResponse {
+  spreadsheetId: string;
+  replies: {
+    addSheet: {
+      properties: {
+        sheetId: number;
+      };
+    };
+  }[];
+}
