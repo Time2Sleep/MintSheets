@@ -56,6 +56,8 @@ export const useGoogleStore = defineStore('google', () => {
         spreadsheetId.value = localId;
         return;
       }
+
+      localStorage.removeItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME);
     }
 
     const title = 'MintSheets_financial_spreadsheet_MVP';
@@ -70,14 +72,20 @@ export const useGoogleStore = defineStore('google', () => {
       }
 
       id = await createSpreadsheet(title);
-      _initSpreadsheet(id);
+
+      const initialized = await _initSpreadsheet(id);
+
+      if (!initialized) {
+        isAuthError.value = true;
+        return;
+      }
     }
 
     localStorage.setItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME, id);
     spreadsheetId.value = id;
   };
 
-  const _initSpreadsheet = async (id: string) => {
+  const _initSpreadsheet = async (id: string): Promise<boolean> => {
     try {
       const sheets = await batchUpdateSpreadsheet(id, [
         buildRenameSheetRequest(0, 'Total'),
@@ -92,14 +100,18 @@ export const useGoogleStore = defineStore('google', () => {
 
       const transactionsSheetId = sheets.replies[1].addSheet.properties.sheetId;
 
-      if (!transactionsSheetId) return;
+      if (!transactionsSheetId) return false;
 
       await batchUpdateSpreadsheet(id, [
         buildBoldtextRequest(0, 0, 3, 0, 1),
         buildBoldtextRequest(transactionsSheetId, 0, 1, 0, 5),
       ]);
+
+      return true;
     } catch (err) {
       console.warn('Error during spreadsheets initializtion', err);
+
+      return false;
     }
   };
 

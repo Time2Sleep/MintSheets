@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { apiClient } from '.';
 import type {
   AppendValuesResponse,
@@ -23,9 +24,16 @@ export const findSpreadsheetByTitle = async (title: string): Promise<string | nu
 };
 
 export const findSpreadsheetById = async (spreadsheetId: string): Promise<string | null> => {
-  const response = await apiClient.get<{ spreadsheetId: string }>(`/${spreadsheetId}`);
+  try {
+    const response = await apiClient.get<{ spreadsheetId: string }>(`/${spreadsheetId}`);
+    return response.data.spreadsheetId;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 404) {
+      return null;
+    }
 
-  return response.data.spreadsheetId;
+    throw err;
+  }
 };
 
 export const createSpreadsheet = async (title: string): Promise<string> => {
