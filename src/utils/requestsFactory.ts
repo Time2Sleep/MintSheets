@@ -1,3 +1,5 @@
+import type { SheetsRowData } from '../types/api';
+
 export const buildRenameSheetRequest = (sheetId: number, newTitle: string) => ({
   updateSheetProperties: {
     properties: {
@@ -47,5 +49,29 @@ export const buildBoldtextRequest = (
       },
     },
     fields: 'userEnteredFormat.textFormat.bold',
+  },
+});
+
+export const buildInsertRowRequest = (sheetId: number, startIndex: number, endIndex: number) => ({
+  insertDimension: {
+    range: {
+      sheetId,
+      dimension: 'ROWS',
+      startIndex,
+      endIndex,
+    },
+    inheritFromBefore: false,
+  },
+});
+
+export const buildUpdateCellsValueRequest = (sheetId: number, rowIndex: number, rows: SheetsRowData[]) => ({
+  updateCells: {
+    start: {
+      sheetId,
+      rowIndex,
+      columnIndex: 0,
+    },
+    rows,
+    fields: 'userEnteredValue',
   },
 });

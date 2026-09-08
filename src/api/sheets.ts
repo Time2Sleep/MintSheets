@@ -4,6 +4,7 @@ import type {
   AppendValuesResponse,
   BatchUpdateResponse,
   CreateSpreadsheetResponse,
+  GetSheetPropertiesResponse,
   GoogleDriveFilesReponse,
 } from '../types/api';
 
@@ -72,5 +73,15 @@ export const appendSpreadsheetRows = async (
       },
     },
   );
+  return response.data;
+};
+
+export const getSpreadsheetValues = async (spreadsheetId: string, range: string): Promise<string[][]> => {
+  const response = await apiClient.get<{ values: string[][] }>(`/${spreadsheetId}/values/${range}`);
+  return response.data.values || [];
+};
+
+export const getSheetsProperties = async (spreadsheetId: string): Promise<GetSheetPropertiesResponse> => {
+  const response = await apiClient.get<GetSheetPropertiesResponse>(`/${spreadsheetId}?&fields=sheets.properties`);
   return response.data;
 };

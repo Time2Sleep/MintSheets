@@ -1,6 +1,7 @@
 import type { TokenClient, TokenResponse } from '../types/google';
 import { useGoogleStore } from '../stores/google';
 import { router } from '../router';
+import { syncTransactions } from './transactions';
 
 let tokenClient: TokenClient | null = null;
 
@@ -17,6 +18,9 @@ export const initGoogle = () => {
           console.log('[Auth Service] initializing cloud spreadsheet...');
           await googleStore.findOrCreateSpreadsheet();
           console.log('[Auth Service] Cloud spreadsheet successfully linked to session!');
+
+          await googleStore.getSheetsData();
+          await syncTransactions();
 
           router.push({ name: 'main' });
         } catch (error) {

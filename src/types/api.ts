@@ -36,3 +36,21 @@ export interface BatchUpdateResponse {
     };
   }[];
 }
+
+export interface SheetProperties {
+  sheetId: number;
+  title: string;
+}
+
+export interface GetSheetPropertiesResponse {
+  sheets: { properties: SheetProperties }[];
+}
+
+export interface SheetsRowData {
+  values: {
+    userEnteredValue: {
+      stringValue?: string;
+      numberValue?: number;
+    };
+  }[];
+}

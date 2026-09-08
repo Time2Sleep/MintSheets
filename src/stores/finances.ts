@@ -1,19 +1,36 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import { TransactionTypes, type Transaction, type TransactionWithoutId } from '../types/finances';
+import { TransactionTypes, type Transaction, type TransactionFormData } from '../types/finances';
 import { dateToHumanReadable, isCurrentMonth } from '../utils/date';
+import {
+  formDataToTransaction,
+  removeTransactionsFromPending,
+  saveTransactionsToSpreadsheet,
+} from '../services/transactions';
 
 export const useFinanceStore = defineStore(
   'finances',
   () => {
     const transactions = ref<Transaction[]>([]);
+    const pendingTransactions = ref<string[]>([]);
     const categories = ref<string[]>(['Food', 'Transport', 'Salary', 'Utilities']); // Example categories
     const currency = ref<string>('₽');
 
-    const addTransaction = (transaction: TransactionWithoutId) => {
-      if (!Number.isFinite(Number(transaction.amount))) return;
+    const addTransaction = async (transaction: TransactionFormData) => {
+      const transactionData = formDataToTransaction(transaction);
 
-      transactions.value.push({ ...transaction, id: crypto.randomUUID(), amount: Number(transaction.amount) });
+      if (!transactionData) return;
+
+      const transactionId = crypto.randomUUID();
+      const transactionToPush = { ...transactionData, id: transactionId };
+      transactions.value.unshift(transactionToPush);
+      pendingTransactions.value.push(transactionId);
+
+      const result = await saveTransactionsToSpreadsheet([transactionToPush]);
+
+      console.log('result', result);
+
+      if (result) removeTransactionsFromPending(transactionId);
     };
 
     const monthIncome = computed<number>(() => {
@@ -58,6 +75,7 @@ export const useFinanceStore = defineStore(
       addTransaction,
       allTransactionsGrouped,
       currency,
+      pendingTransactions,
     };
   },
   {
