@@ -52,5 +52,15 @@ export interface SheetsRowData {
       stringValue?: string;
       numberValue?: number;
     };
+    userEnteredFormat?: {
+      numberFormat?: {
+        type: 'TEXT' | 'DATE';
+        pattern?: string;
+      };
+      textFormat?: {
+        bold?: boolean;
+        italic?: boolean;
+      };
+    };
   }[];
 }

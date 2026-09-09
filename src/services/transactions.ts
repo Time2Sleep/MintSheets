@@ -3,12 +3,16 @@ import { useFinanceStore } from '../stores/finances';
 import { useGoogleStore } from '../stores/google';
 import type { SheetsRowData } from '../types/api';
 import { type Transaction, type TransactionFormData, TransactionTypes } from '../types/finances';
+import { sheetDateToStringDate, stringDateToSheetDate } from '../utils/date';
 import { buildInsertRowRequest, buildUpdateCellsValueRequest } from '../utils/requestsFactory';
 
 export const transactionToRowData = ({ id, date, type, amount, category, comment }: Transaction): SheetsRowData => ({
   values: [
     { userEnteredValue: { stringValue: id } },
-    { userEnteredValue: { stringValue: date } },
+    {
+      userEnteredValue: { numberValue: stringDateToSheetDate(date) },
+      userEnteredFormat: { numberFormat: { type: 'DATE', pattern: 'YYYY-MM-DD' } },
+    },
     { userEnteredValue: { stringValue: type } },
     { userEnteredValue: { stringValue: category } },
     { userEnteredValue: { numberValue: amount } },
@@ -21,15 +25,16 @@ const isTransactionType = (value: string): value is Transaction['type'] => {
 };
 
 export const rowToTransaction = ([id, date, type, category, amount, comment]: string[]): Transaction | null => {
+  const parsedDate = sheetDateToStringDate(date);
   const parsedAmount = parseFloat(amount);
 
-  if (!Number.isFinite(parsedAmount) || !isTransactionType(type) || !date || !category) {
+  if (!Number.isFinite(parsedAmount) || !isTransactionType(type) || !parsedDate || !category) {
     return null;
   }
 
   return {
     id,
-    date,
+    date: parsedDate,
     type,
     category,
     amount: parsedAmount,
