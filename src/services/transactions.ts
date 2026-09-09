@@ -48,28 +48,31 @@ export const formDataToTransaction = ({ amount, ...rest }: TransactionFormData):
 };
 
 export const saveTransactionsToSpreadsheet = async (transactions: Transaction[]): Promise<boolean> => {
-  const googleStore = useGoogleStore();
-  if (!googleStore.spreadsheetId) return Promise.reject('Spreadsheet ID is not set');
-  if (!googleStore.sheetsId.transactions) return Promise.reject('Transactions sheet ID is not set');
+  try {
+    const googleStore = useGoogleStore();
+    if (!googleStore.spreadsheetId) throw new Error('Spreadsheet ID is not set');
+    if (googleStore.sheetsId.transactions == null) throw new Error('Transactions sheet ID is not set');
 
-  const rows = transactions.map(transactionToRowData);
-  const response = await batchUpdateSpreadsheet(googleStore.spreadsheetId, [
-    buildInsertRowRequest(googleStore.sheetsId.transactions, 1, transactions.length + 1),
-    buildUpdateCellsValueRequest(googleStore.sheetsId.transactions, 1, rows),
-  ]);
+    const rows = transactions.map(transactionToRowData);
+    const response = await batchUpdateSpreadsheet(googleStore.spreadsheetId, [
+      buildInsertRowRequest(googleStore.sheetsId.transactions, 1, transactions.length + 1),
+      buildUpdateCellsValueRequest(googleStore.sheetsId.transactions, 1, rows),
+    ]);
 
-  const errorsCount = response.replies.reduce((acc, obj) => acc + Object.keys(obj).length, 0);
+    const errorsCount = response.replies.reduce((acc, obj) => acc + Object.keys(obj).length, 0);
 
-  if (errorsCount) return false;
-
-  return true;
+    return errorsCount === 0;
+  } catch (error) {
+    console.warn('Failed to save transactions:', error);
+    return false;
+  }
 };
 
 export const getTransactionsFromSpreadsheet = async (): Promise<Transaction[]> => {
   const googleStore = useGoogleStore();
   if (!googleStore.spreadsheetId) return Promise.reject('Spreadsheet ID is not set');
 
-  const rows = await getSpreadsheetValues(googleStore.spreadsheetId, 'Transactions!A2:F51');
+  const rows = await getSpreadsheetValues(googleStore.spreadsheetId, 'Transactions!A2:F');
 
   return rows.map(rowToTransaction).filter((transaction): transaction is Transaction => transaction !== null);
 };
@@ -114,9 +117,9 @@ export const syncTransactions = async () => {
     (id) => !confirmedTransactionIds.has(id),
   );
 
-  if (!resentTransactions.length) return;
-
   financesStore.transactions = [...resentTransactions, ...remoteTransactions];
+
+  if (!resentTransactions.length) return;
   const result = await saveTransactionsToSpreadsheet(resentTransactions);
 
   if (result) removeTransactionsFromPending(resentTransactions.map(({ id }) => id));

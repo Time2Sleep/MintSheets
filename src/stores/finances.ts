@@ -28,8 +28,6 @@ export const useFinanceStore = defineStore(
 
       const result = await saveTransactionsToSpreadsheet([transactionToPush]);
 
-      console.log('result', result);
-
       if (result) removeTransactionsFromPending(transactionId);
     };
 

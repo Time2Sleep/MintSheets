@@ -45,6 +45,7 @@ export const useGoogleStore = defineStore('google', () => {
 
     googleToken.value = null;
     spreadsheetId.value = null;
+    sheetsId.value = { total: 0 };
     localStorage.removeItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME);
   };
 

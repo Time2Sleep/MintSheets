@@ -38,7 +38,6 @@ const handleSubmit = () => {
 };
 
 const clearForm = () => {
-  form.category = '';
   form.amount = '';
   form.comment = '';
   form.type = TransactionTypes.SPENDING;

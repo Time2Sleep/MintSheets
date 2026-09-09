@@ -77,7 +77,11 @@ export const appendSpreadsheetRows = async (
 };
 
 export const getSpreadsheetValues = async (spreadsheetId: string, range: string): Promise<string[][]> => {
-  const response = await apiClient.get<{ values: string[][] }>(`/${spreadsheetId}/values/${range}`);
+  const response = await apiClient.get<{ values: string[][] }>(`/${spreadsheetId}/values/${range}`, {
+    params: {
+      valueRenderOption: 'UNFORMATTED_VALUE',
+    },
+  });
   return response.data.values || [];
 };
 
