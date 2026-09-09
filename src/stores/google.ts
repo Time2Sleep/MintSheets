@@ -6,6 +6,7 @@ import {
   createSpreadsheet,
   findSpreadsheetById,
   findSpreadsheetByTitle,
+  getSheetsProperties,
 } from '../api/sheets';
 import { router } from '../router';
 import { buildRenameSheetRequest, buildAddSheetRequest, buildBoldtextRequest } from '../utils/requestsFactory';
@@ -17,6 +18,7 @@ let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 export const useGoogleStore = defineStore('google', () => {
   const googleToken = ref<string | null>(null);
   const spreadsheetId = ref<string | null>(localStorage.getItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME));
+  const sheetsId = ref<Record<string, number>>({ total: 0 });
 
   const isAuthError = ref<boolean>(false);
   const isOffline = ref<boolean>(false);
@@ -43,10 +45,11 @@ export const useGoogleStore = defineStore('google', () => {
 
     googleToken.value = null;
     spreadsheetId.value = null;
+    sheetsId.value = { total: 0 };
     localStorage.removeItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME);
   };
 
-  const findOrCreateSpreadsheet = async () => {
+  const findOrCreateSpreadsheet = async (): Promise<string> => {
     const localId = localStorage.getItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME);
 
     if (localId) {
@@ -54,7 +57,7 @@ export const useGoogleStore = defineStore('google', () => {
 
       if (foundById) {
         spreadsheetId.value = localId;
-        return;
+        return localId;
       }
 
       localStorage.removeItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME);
@@ -68,7 +71,7 @@ export const useGoogleStore = defineStore('google', () => {
     if (!id) {
       if (doubleCheckId) {
         spreadsheetId.value = doubleCheckId;
-        return;
+        return doubleCheckId;
       }
 
       id = await createSpreadsheet(title);
@@ -77,12 +80,13 @@ export const useGoogleStore = defineStore('google', () => {
 
       if (!initialized) {
         isAuthError.value = true;
-        return;
+        return Promise.reject(new Error('Failed to initialize spreadsheet'));
       }
     }
 
     localStorage.setItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME, id);
     spreadsheetId.value = id;
+    return id;
   };
 
   const _initSpreadsheet = async (id: string): Promise<boolean> => {
@@ -95,12 +99,14 @@ export const useGoogleStore = defineStore('google', () => {
       const totalHeaders = [['Initial Balance', '0'], [], ['Categories']];
       await appendSpreadsheetRows(id, 'Total!A1', totalHeaders);
 
-      const transactionHeaders = [['Date', 'Type', 'Category', 'Amount', 'Comment']];
+      const transactionHeaders = [['ID', 'Date', 'Type', 'Category', 'Amount', 'Comment']];
       await appendSpreadsheetRows(id, 'Transactions!A1', transactionHeaders);
 
       const transactionsSheetId = sheets.replies[1].addSheet.properties.sheetId;
 
       if (!transactionsSheetId) return false;
+
+      sheetsId.value.transactions = transactionsSheetId;
 
       await batchUpdateSpreadsheet(id, [
         buildBoldtextRequest(0, 0, 3, 0, 1),
@@ -113,6 +119,21 @@ export const useGoogleStore = defineStore('google', () => {
 
       return false;
     }
+  };
+
+  const getSheetsData = async () => {
+    if (!spreadsheetId.value) return;
+
+    const properties = await getSheetsProperties(spreadsheetId.value);
+
+    sheetsId.value = properties.sheets.reduce(
+      (acc, { properties }) => {
+        acc[properties.title.toLowerCase()] = properties.sheetId;
+
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   };
 
   const turnOfflineModeOn = () => {
@@ -133,5 +154,8 @@ export const useGoogleStore = defineStore('google', () => {
     findOrCreateSpreadsheet,
     mintsWasConnected,
     turnOfflineModeOn,
+    spreadsheetId,
+    sheetsId,
+    getSheetsData,
   };
 });

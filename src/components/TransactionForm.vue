@@ -3,7 +3,7 @@ import { computed, reactive } from 'vue';
 import BaseButton from './UI/BaseButton.vue';
 import BaseInput from './UI/BaseInput.vue';
 import BaseSelect from './UI/BaseSelect.vue';
-import { TransactionTypes, type TransactionWithoutId } from '../types/finances';
+import { TransactionTypes, type TransactionFormData } from '../types/finances';
 import { getTodayDateFormatted } from '../utils/date';
 import { useFinanceStore } from '../stores/finances';
 import { storeToRefs } from 'pinia';
@@ -15,10 +15,10 @@ const { categories } = storeToRefs(financeStore);
 
 const googleStore = useGoogleStore();
 
-const form = reactive<TransactionWithoutId>({
+const form = reactive<TransactionFormData>({
   date: getTodayDateFormatted(),
   category: '',
-  amount: undefined,
+  amount: '',
   comment: '',
   type: TransactionTypes.SPENDING,
 });
@@ -38,8 +38,7 @@ const handleSubmit = () => {
 };
 
 const clearForm = () => {
-  form.category = '';
-  form.amount = undefined;
+  form.amount = '';
   form.comment = '';
   form.type = TransactionTypes.SPENDING;
 };
