@@ -45,8 +45,8 @@ export const stringDateToSheetDate = (dateString: string): number => {
   return (date.getTime() - excelBaseDate.getTime()) / msPerDay;
 };
 
-export const sheetDateToStringDate = (sheetDate: string | number): string => {
-  if (typeof sheetDate === 'string') return sheetDate;
+export const sheetDateToStringDate = (sheetDate: string | number): string | null => {
+  if (typeof sheetDate === 'string') return isDateString(sheetDate) ? sheetDate : null;
 
   const msPerDay = 24 * 60 * 60 * 1000;
   const daysBetween = sheetDate - 25569;
@@ -57,3 +57,5 @@ export const sheetDateToStringDate = (sheetDate: string | number): string => {
 
   return getDateFormatted(dateNormalized);
 };
+
+export const isDateString = (date: string) => !isNaN(Date.parse(date));
