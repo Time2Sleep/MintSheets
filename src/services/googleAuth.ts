@@ -19,7 +19,7 @@ export const initGoogle = () => {
           await googleStore.findOrCreateSpreadsheet();
           console.log('[Auth Service] Cloud spreadsheet successfully linked to session!');
 
-          await googleStore.getSheetsData();
+          await googleStore.getSheetsIDs();
           await syncTransactions();
 
           router.push({ name: 'main' });

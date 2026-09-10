@@ -30,9 +30,7 @@ export interface BatchUpdateResponse {
   spreadsheetId: string;
   replies: {
     addSheet: {
-      properties: {
-        sheetId: number;
-      };
+      properties: SheetProperties;
     };
   }[];
 }

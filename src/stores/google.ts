@@ -1,161 +1,103 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import {
-  appendSpreadsheetRows,
-  batchUpdateSpreadsheet,
-  createSpreadsheet,
-  findSpreadsheetById,
-  findSpreadsheetByTitle,
-  getSheetsProperties,
-} from '../api/sheets';
+import { findSpreadsheetById, findSpreadsheetByTitle } from '../api/sheets';
 import { router } from '../router';
-import { buildRenameSheetRequest, buildAddSheetRequest, buildBoldtextRequest } from '../utils/requestsFactory';
+import { getSpreadsheetTabsIDs, initSpreadsheet } from '../services/spreadsheet';
 
-const LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME = 'mintsheets_spreadsheet_id';
-const LOCAL_STORAGE_MINTS_WAS_CONNECTED = 'mints_was_connected';
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
-export const useGoogleStore = defineStore('google', () => {
-  const googleToken = ref<string | null>(null);
-  const spreadsheetId = ref<string | null>(localStorage.getItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME));
-  const sheetsId = ref<Record<string, number>>({ total: 0 });
+export const useGoogleStore = defineStore(
+  'google',
+  () => {
+    const googleToken = ref<string | null>(null);
+    const spreadsheetId = ref<string | null>(null);
+    const sheetsId = ref<Record<string, number>>({});
 
-  const isAuthError = ref<boolean>(false);
-  const isOffline = ref<boolean>(false);
-  const isConnected = computed(() => !!googleToken.value);
-  const mintsWasConnected = ref<boolean>(!!localStorage.getItem(LOCAL_STORAGE_MINTS_WAS_CONNECTED));
+    const isAuthError = ref<boolean>(false);
+    const isOffline = ref<boolean>(false);
+    const isConnected = computed(() => !!googleToken.value);
+    const mintsWasConnected = ref<boolean>(false);
 
-  const setGoogleToken = (token: string | null) => {
-    googleToken.value = token;
-    mintsWasConnected.value = true;
-    localStorage.setItem(LOCAL_STORAGE_MINTS_WAS_CONNECTED, 'true');
+    const setGoogleToken = (token: string | null) => {
+      googleToken.value = token;
+      mintsWasConnected.value = true;
 
-    if (logoutTimer) {
-      clearTimeout(logoutTimer);
-    }
-
-    logoutTimer = setTimeout(logoutGoogle, 10 * 60 * 1000);
-  };
-
-  const logoutGoogle = () => {
-    if (logoutTimer) {
-      clearTimeout(logoutTimer);
-      logoutTimer = undefined;
-    }
-
-    googleToken.value = null;
-    spreadsheetId.value = null;
-    sheetsId.value = { total: 0 };
-    localStorage.removeItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME);
-  };
-
-  const findOrCreateSpreadsheet = async (): Promise<string> => {
-    const localId = localStorage.getItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME);
-
-    if (localId) {
-      const foundById = await findSpreadsheetById(localId);
-
-      if (foundById) {
-        spreadsheetId.value = localId;
-        return localId;
+      if (logoutTimer) {
+        clearTimeout(logoutTimer);
       }
 
-      localStorage.removeItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME);
-    }
+      logoutTimer = setTimeout(logoutGoogle, 10 * 60 * 1000);
+    };
 
-    const title = 'MintSheets_financial_spreadsheet_MVP';
-
-    let id = await findSpreadsheetByTitle(title);
-
-    const doubleCheckId = localStorage.getItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME);
-    if (!id) {
-      if (doubleCheckId) {
-        spreadsheetId.value = doubleCheckId;
-        return doubleCheckId;
+    const logoutGoogle = () => {
+      if (logoutTimer) {
+        clearTimeout(logoutTimer);
+        logoutTimer = undefined;
       }
 
-      id = await createSpreadsheet(title);
+      googleToken.value = null;
+      spreadsheetId.value = null;
+      sheetsId.value = {};
+      mintsWasConnected.value = false;
+    };
 
-      const initialized = await _initSpreadsheet(id);
+    const findOrCreateSpreadsheet = async (): Promise<string> => {
+      if (spreadsheetId.value) {
+        const foundById = await findSpreadsheetById(spreadsheetId.value);
 
-      if (!initialized) {
+        if (foundById) return spreadsheetId.value;
+      }
+
+      const title = 'MintSheets_financial_spreadsheet_MVP';
+      const id = await findSpreadsheetByTitle(title);
+      if (id) {
+        spreadsheetId.value = id;
+        return id;
+      }
+
+      const newSpreadsheetId = await initSpreadsheet(title);
+
+      if (!newSpreadsheetId) {
         isAuthError.value = true;
         return Promise.reject(new Error('Failed to initialize spreadsheet'));
       }
-    }
 
-    localStorage.setItem(LOCAL_STORAGE_SPREADHEET_ID_VAR_NAME, id);
-    spreadsheetId.value = id;
-    return id;
-  };
+      spreadsheetId.value = newSpreadsheetId;
+      return newSpreadsheetId;
+    };
 
-  const _initSpreadsheet = async (id: string): Promise<boolean> => {
-    try {
-      const sheets = await batchUpdateSpreadsheet(id, [
-        buildRenameSheetRequest(0, 'Total'),
-        buildAddSheetRequest('Transactions'),
-      ]);
+    const turnOfflineModeOn = () => {
+      isOffline.value = true;
 
-      const totalHeaders = [['Initial Balance', '0'], [], ['Categories']];
-      await appendSpreadsheetRows(id, 'Total!A1', totalHeaders);
+      if (mintsWasConnected.value) {
+        router.push({ name: 'main' });
+      }
+    };
 
-      const transactionHeaders = [['ID', 'Date', 'Type', 'Category', 'Amount', 'Comment']];
-      await appendSpreadsheetRows(id, 'Transactions!A1', transactionHeaders);
+    const getSheetsIDs = async () => {
+      if (!spreadsheetId.value) throw new Error('Spreadsheet ID is missing!');
 
-      const transactionsSheetId = sheets.replies[1].addSheet.properties.sheetId;
+      sheetsId.value = await getSpreadsheetTabsIDs(spreadsheetId.value);
+    };
 
-      if (!transactionsSheetId) return false;
-
-      sheetsId.value.transactions = transactionsSheetId;
-
-      await batchUpdateSpreadsheet(id, [
-        buildBoldtextRequest(0, 0, 3, 0, 1),
-        buildBoldtextRequest(transactionsSheetId, 0, 1, 0, 5),
-      ]);
-
-      return true;
-    } catch (err) {
-      console.warn('Error during spreadsheets initializtion', err);
-
-      return false;
-    }
-  };
-
-  const getSheetsData = async () => {
-    if (!spreadsheetId.value) return;
-
-    const properties = await getSheetsProperties(spreadsheetId.value);
-
-    sheetsId.value = properties.sheets.reduce(
-      (acc, { properties }) => {
-        acc[properties.title.toLowerCase()] = properties.sheetId;
-
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
-  };
-
-  const turnOfflineModeOn = () => {
-    isOffline.value = true;
-
-    if (mintsWasConnected.value) {
-      router.push({ name: 'main' });
-    }
-  };
-
-  return {
-    googleToken,
-    isConnected,
-    setGoogleToken,
-    logoutGoogle,
-    isAuthError,
-    isOffline,
-    findOrCreateSpreadsheet,
-    mintsWasConnected,
-    turnOfflineModeOn,
-    spreadsheetId,
-    sheetsId,
-    getSheetsData,
-  };
-});
+    return {
+      googleToken,
+      isConnected,
+      setGoogleToken,
+      logoutGoogle,
+      isAuthError,
+      isOffline,
+      findOrCreateSpreadsheet,
+      mintsWasConnected,
+      turnOfflineModeOn,
+      spreadsheetId,
+      sheetsId,
+      getSheetsIDs,
+    };
+  },
+  {
+    persist: {
+      pick: ['spreadsheetId', 'sheetsId', 'mintsWasConnected'],
+    },
+  },
+);
