@@ -1,4 +1,4 @@
-import { createSpreadsheet, batchUpdateSpreadsheet, getSheetsProperties } from '../api/sheets';
+import { createSpreadsheet, batchUpdateSpreadsheet, getSheetsProperties, getSpreadsheetValues } from '../api/sheets';
 import type { SheetsRowData } from '../types/api';
 import {
   buildRenameSheetRequest,
@@ -13,8 +13,9 @@ export const initSpreadsheet = async (title: string): Promise<string | false> =>
     const id = await createSpreadsheet(title);
 
     await setupSpreadsheet(id);
+    const isActive = await isSpreadsheetActive(id);
 
-    return id;
+    return isActive ? id : false;
   } catch (error) {
     console.warn('Failed to create spreadsheet', error);
 
@@ -27,6 +28,10 @@ export const setupSpreadsheet = async (id: string): Promise<void> => {
   const transactionsSheetId = await createSpreadsheetTab(id, 'Transactions'); //create second tab 'Transactions'
 
   const totalSheetInitData: SheetsRowData[] = [
+    {
+      values: [buildBoldCell('status'), { userEnteredValue: { stringValue: 'active' } }],
+    },
+    { values: [] },
     {
       values: [buildBoldCell('Initial Balance'), { userEnteredValue: { numberValue: 0 } }],
     },
@@ -71,4 +76,10 @@ export const getSpreadsheetTabsIDs = async (id: string): Promise<Record<string, 
     },
     {} as Record<string, number>,
   );
+};
+
+export const isSpreadsheetActive = async (id: string): Promise<boolean> => {
+  const [[status]] = await getSpreadsheetValues(id, 'Total!B1:B1');
+
+  return status === 'active';
 };

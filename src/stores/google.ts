@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { findSpreadsheetById, findSpreadsheetByTitle } from '../api/sheets';
 import { router } from '../router';
-import { getSpreadsheetTabsIDs, initSpreadsheet } from '../services/spreadsheet';
+import { getSpreadsheetTabsIDs, initSpreadsheet, isSpreadsheetActive } from '../services/spreadsheet';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -17,6 +17,7 @@ export const useGoogleStore = defineStore(
     const isOffline = ref<boolean>(false);
     const isConnected = computed(() => !!googleToken.value);
     const mintsWasConnected = ref<boolean>(false);
+    const connecting = ref<boolean>(false);
 
     const setGoogleToken = (token: string | null) => {
       googleToken.value = token;
@@ -42,28 +43,40 @@ export const useGoogleStore = defineStore(
     };
 
     const findOrCreateSpreadsheet = async (): Promise<string> => {
-      if (spreadsheetId.value) {
-        const foundById = await findSpreadsheetById(spreadsheetId.value);
+      connecting.value = true;
 
-        if (foundById) return spreadsheetId.value;
+      try {
+        if (spreadsheetId.value) {
+          const foundById = await findSpreadsheetById(spreadsheetId.value);
+
+          if (foundById) {
+            const isActive = await isSpreadsheetActive(spreadsheetId.value);
+            if (isActive) return spreadsheetId.value;
+          }
+        }
+
+        const title = 'MintSheets_financial_spreadsheet_MVP';
+        const id = await findSpreadsheetByTitle(title);
+        if (id) {
+          const isActive = await isSpreadsheetActive(id);
+          if (isActive) {
+            spreadsheetId.value = id;
+            return id;
+          }
+        }
+
+        const newSpreadsheetId = await initSpreadsheet(title);
+
+        if (!newSpreadsheetId) {
+          isAuthError.value = true;
+          throw new Error('Failed to initialize spreadsheet');
+        }
+
+        spreadsheetId.value = newSpreadsheetId;
+        return newSpreadsheetId;
+      } finally {
+        connecting.value = false;
       }
-
-      const title = 'MintSheets_financial_spreadsheet_MVP';
-      const id = await findSpreadsheetByTitle(title);
-      if (id) {
-        spreadsheetId.value = id;
-        return id;
-      }
-
-      const newSpreadsheetId = await initSpreadsheet(title);
-
-      if (!newSpreadsheetId) {
-        isAuthError.value = true;
-        return Promise.reject(new Error('Failed to initialize spreadsheet'));
-      }
-
-      spreadsheetId.value = newSpreadsheetId;
-      return newSpreadsheetId;
     };
 
     const turnOfflineModeOn = () => {
@@ -93,6 +106,7 @@ export const useGoogleStore = defineStore(
       spreadsheetId,
       sheetsId,
       getSheetsIDs,
+      connecting,
     };
   },
   {
