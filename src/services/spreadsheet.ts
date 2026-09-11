@@ -12,10 +12,9 @@ export const initSpreadsheet = async (title: string): Promise<string | false> =>
   try {
     const id = await createSpreadsheet(title);
 
-    await setupSpreadsheet(id);
-    const isActive = await isSpreadsheetActive(id);
+    const isSetup = await setupSpreadsheet(id);
 
-    return isActive ? id : false;
+    return isSetup ? id : false;
   } catch (error) {
     console.warn('Failed to create spreadsheet', error);
 
@@ -23,40 +22,48 @@ export const initSpreadsheet = async (title: string): Promise<string | false> =>
   }
 };
 
-export const setupSpreadsheet = async (id: string): Promise<void> => {
-  await batchUpdateSpreadsheet(id, [buildRenameSheetRequest(0, 'Total')]); //rename first tab to 'Total'
-  const transactionsSheetId = await createSpreadsheetTab(id, 'Transactions'); //create second tab 'Transactions'
+export const setupSpreadsheet = async (id: string): Promise<boolean> => {
+  try {
+    await batchUpdateSpreadsheet(id, [buildRenameSheetRequest(0, 'Total')]); //rename first tab to 'Total'
+    const transactionsSheetId = await createSpreadsheetTab(id, 'Transactions'); //create second tab 'Transactions'
 
-  const totalSheetInitData: SheetsRowData[] = [
-    {
-      values: [buildBoldCell('status'), { userEnteredValue: { stringValue: 'active' } }],
-    },
-    { values: [] },
-    {
-      values: [buildBoldCell('Initial Balance'), { userEnteredValue: { numberValue: 0 } }],
-    },
-    { values: [] },
-    { values: [buildBoldCell('Categories:')] },
-  ];
+    const totalSheetInitData: SheetsRowData[] = [
+      {
+        values: [buildBoldCell('status'), { userEnteredValue: { stringValue: 'active' } }],
+      },
+      { values: [] },
+      {
+        values: [buildBoldCell('Initial Balance'), { userEnteredValue: { numberValue: 0 } }],
+      },
+      { values: [] },
+      { values: [buildBoldCell('Categories:')] },
+    ];
 
-  const transactionsSheetInitData: SheetsRowData[] = [
-    {
-      values: [
-        buildBoldCell('ID'),
-        buildBoldCell('Date'),
-        buildBoldCell('Type'),
-        buildBoldCell('Category'),
-        buildBoldCell('Amount'),
-        buildBoldCell('Comment'),
-      ],
-    },
-  ];
+    const transactionsSheetInitData: SheetsRowData[] = [
+      {
+        values: [
+          buildBoldCell('ID'),
+          buildBoldCell('Date'),
+          buildBoldCell('Type'),
+          buildBoldCell('Category'),
+          buildBoldCell('Amount'),
+          buildBoldCell('Comment'),
+        ],
+      },
+    ];
 
-  await batchUpdateSpreadsheet(id, [
-    buildUpdateCellsValueRequest(0, 0, totalSheetInitData), //write init data to 'Total'
-    buildUpdateCellsValueRequest(transactionsSheetId, 0, transactionsSheetInitData), //write init data to 'Transactions'
-    buildConvertToTableRequest('Transactions', transactionsSheetId),
-  ]);
+    await batchUpdateSpreadsheet(id, [
+      buildUpdateCellsValueRequest(0, 0, totalSheetInitData), //write init data to 'Total'
+      buildUpdateCellsValueRequest(transactionsSheetId, 0, transactionsSheetInitData), //write init data to 'Transactions'
+      buildConvertToTableRequest('Transactions', transactionsSheetId),
+    ]);
+
+    return true;
+  } catch (error) {
+    console.warn('Failed to setup spreadsheet', error);
+
+    return false;
+  }
 };
 
 export const createSpreadsheetTab = async (id: string, tabName: string): Promise<number> => {
@@ -79,7 +86,6 @@ export const getSpreadsheetTabsIDs = async (id: string): Promise<Record<string, 
 };
 
 export const isSpreadsheetActive = async (id: string): Promise<boolean> => {
-  const [[status]] = await getSpreadsheetValues(id, 'Total!B1:B1');
-
-  return status === 'active';
+  const values = await getSpreadsheetValues(id, 'Total!B1:B1');
+  return values[0]?.[0] === 'active';
 };

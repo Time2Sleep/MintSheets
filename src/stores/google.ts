@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { findSpreadsheetById, findSpreadsheetByTitle } from '../api/sheets';
 import { router } from '../router';
-import { getSpreadsheetTabsIDs, initSpreadsheet, isSpreadsheetActive } from '../services/spreadsheet';
+import { getSpreadsheetTabsIDs, initSpreadsheet, isSpreadsheetActive, setupSpreadsheet } from '../services/spreadsheet';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -59,9 +59,13 @@ export const useGoogleStore = defineStore(
         const id = await findSpreadsheetByTitle(title);
         if (id) {
           const isActive = await isSpreadsheetActive(id);
-          if (isActive) {
-            spreadsheetId.value = id;
-            return id;
+
+          if (!isActive) {
+            const isSetup = await setupSpreadsheet(id);
+            if (isSetup) {
+              spreadsheetId.value = id;
+              return id;
+            }
           }
         }
 
@@ -111,7 +115,7 @@ export const useGoogleStore = defineStore(
   },
   {
     persist: {
-      pick: ['spreadsheetId', 'sheetsId', 'mintsWasConnected'],
+      pick: ['spreadsheetId', 'mintsWasConnected', 'sheetsId'],
     },
   },
 );
