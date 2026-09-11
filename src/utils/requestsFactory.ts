@@ -32,25 +32,11 @@ export const buildRange = (
   endColumnIndex: endColumn,
 });
 
-export const buildBoldtextRequest = (
-  sheetId: number,
-  startRow: number,
-  endRow: number,
-  startColumn: number,
-  endColumn: number,
-) => ({
-  repeatCell: {
-    range: buildRange(sheetId, startRow, endRow, startColumn, endColumn),
-    cell: {
-      userEnteredFormat: {
-        textFormat: {
-          bold: true,
-        },
-      },
-    },
-    fields: 'userEnteredFormat.textFormat.bold',
-  },
-});
+export const buildBoldCell = (text: string | number) => {
+  const userEnteredValue = typeof text === 'string' ? { stringValue: text } : { numberValue: text };
+
+  return { userEnteredValue, userEnteredFormat: { textFormat: { bold: true } } };
+};
 
 export const buildInsertRowRequest = (sheetId: number, startIndex: number, endIndex: number) => ({
   insertDimension: {
@@ -72,6 +58,28 @@ export const buildUpdateCellsValueRequest = (sheetId: number, rowIndex: number, 
       columnIndex: 0,
     },
     rows,
-    fields: 'userEnteredValue',
+    fields: 'userEnteredValue,userEnteredFormat',
+  },
+});
+
+export const buildConvertToTableRequest = (
+  name: string,
+  sheetId: number,
+  startRowIndex = 0,
+  endRowIndex = 2,
+  startColumnIndex = 0,
+  endColumnIndex = 6,
+) => ({
+  addTable: {
+    table: {
+      range: {
+        sheetId,
+        startRowIndex,
+        endRowIndex,
+        startColumnIndex,
+        endColumnIndex,
+      },
+      name,
+    },
   },
 });
