@@ -88,7 +88,7 @@ onMounted(() => {
         :class="{ 'overflow-hidden': !isExpanded, 'overflow-y-auto': isExpanded }"
       >
         <li v-for="(data, key) in allTransactionsGrouped" :key="key" class="block text-sm pb-2">
-          <TransactionItem :title="key" :data="data" :currency="currency" />
+          <TransactionItem :title="key" :data="data" :currency="currency.symbol" />
         </li>
       </ul>
     </WrapperContainer>

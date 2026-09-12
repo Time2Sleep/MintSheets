@@ -1,15 +1,25 @@
 <script setup lang="ts">
-withDefaults(
+type Option = string | number | Record<string, string | number>;
+
+const props = withDefaults(
   defineProps<{
-    options: string[];
+    options: string[] | number[] | Record<string, string | number>[];
     placeholder?: string;
+    labelKey?: string;
   }>(),
   {
     placeholder: '',
+    labelKey: '',
   },
 );
 
-const value = defineModel<string>();
+const value = defineModel<Option>();
+
+const getOptionLabel = (option: Option): string | number => {
+  if (typeof option === 'string' || typeof option === 'number') return option;
+
+  return option[props.labelKey];
+};
 </script>
 
 <template>
@@ -20,8 +30,9 @@ const value = defineModel<string>();
     :class="{ 'text-light-secondary': !value }"
   >
     <option value="" disabled selected hidden>{{ placeholder }}</option>
-    <option v-for="option in options" :key="option" class="flex p-4" :value="option">
-      {{ option }}
+    <option :value="undefined" disabled selected hidden>{{ placeholder }}</option>
+    <option v-for="option in options" :key="getOptionLabel(option)" class="flex p-4" :value="option">
+      {{ getOptionLabel(option) }}
     </option>
   </select>
 </template>

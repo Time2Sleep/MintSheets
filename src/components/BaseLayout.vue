@@ -1,17 +1,24 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { computed } from 'vue';
 import { router } from '../router';
 
-const { name, meta } = useRoute();
-const isBackButtonShown = computed(() => name !== 'main');
+const { meta } = useRoute();
 const goBack = () => {
   router.go(-1);
 };
+
+withDefaults(
+  defineProps<{
+    hideNav?: boolean;
+  }>(),
+  {
+    hideNav: false,
+  },
+);
 </script>
 <template>
-  <div class="flex items-center gap-6">
-    <button v-if="isBackButtonShown" class="flex items-center gap-2 w-fit" @click="goBack">
+  <div class="flex items-center gap-6 pt-6 mb-4">
+    <button v-if="!hideNav" class="flex items-center gap-2 w-fit" @click="goBack">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="16"
