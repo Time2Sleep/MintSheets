@@ -60,12 +60,15 @@ export const useGoogleStore = defineStore(
         if (id) {
           const isActive = await isSpreadsheetActive(id);
 
-          if (!isActive) {
-            const isSetup = await setupSpreadsheet(id);
-            if (isSetup) {
-              spreadsheetId.value = id;
-              return id;
-            }
+          if (isActive) {
+            spreadsheetId.value = id;
+            return id;
+          }
+
+          const isSetup = await setupSpreadsheet(id);
+          if (isSetup) {
+            spreadsheetId.value = id;
+            return id;
           }
         }
 

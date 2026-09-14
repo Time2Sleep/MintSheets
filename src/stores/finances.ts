@@ -7,6 +7,7 @@ import {
   removeTransactionsFromPending,
   saveTransactionsToSpreadsheet,
 } from '../services/transactions';
+import { CURRENCIES, type Currency } from '../constants/currencies';
 
 export const useFinanceStore = defineStore(
   'finances',
@@ -14,7 +15,7 @@ export const useFinanceStore = defineStore(
     const transactions = ref<Transaction[]>([]);
     const pendingTransactions = ref<string[]>([]);
     const categories = ref<string[]>(['Food', 'Transport', 'Salary', 'Utilities']); // Example categories
-    const currency = ref<string>('₽');
+    const currency = ref<Currency>(CURRENCIES[0]);
 
     const addTransaction = async (transaction: TransactionFormData) => {
       const transactionData = formDataToTransaction(transaction);

@@ -2,6 +2,11 @@
 import { computed } from 'vue';
 import ProgressBar from './ProgressBar.vue';
 import WrapperContainer from './WrapperContainer.vue';
+import { useFinanceStore } from '../../stores/finances';
+import { storeToRefs } from 'pinia';
+
+const financeStore = useFinanceStore();
+const { currency } = storeToRefs(financeStore);
 
 const props = withDefaults(
   defineProps<{
@@ -9,10 +14,8 @@ const props = withDefaults(
     title: string;
     barColorClass: string;
     maxLimit?: number;
-    postfix?: string;
   }>(),
   {
-    postfix: '₽',
     maxLimit: 0,
   },
 );
@@ -24,7 +27,7 @@ const max = computed(() => {
 
 <template>
   <WrapperContainer class="active:scale-98 transition-transform duration-200">
-    <div class="text-xl">{{ value.toLocaleString() }} {{ postfix }}</div>
+    <div class="text-xl">{{ value.toLocaleString() }} {{ currency.symbol }}</div>
 
     <div class="mb-4">{{ title }}</div>
 

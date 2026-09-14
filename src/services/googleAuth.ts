@@ -22,7 +22,7 @@ export const initGoogle = () => {
           await googleStore.getSheetsIDs();
           await syncTransactions();
 
-          router.push({ name: 'main' });
+          router.push({ name: 'settings' });
         } catch (error) {
           console.warn('[Auth Service] Critical error while preparing spreadsheet:', error);
           googleStore.isAuthError = true;

@@ -9,7 +9,7 @@ import { onMounted, ref } from 'vue';
 import { useGoogleStore } from '../../stores/google';
 
 const financeStore = useFinanceStore();
-const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
+const { monthSpending, monthIncome } = storeToRefs(financeStore);
 
 const googleStore = useGoogleStore();
 const { isOffline } = storeToRefs(googleStore);
@@ -34,21 +34,9 @@ onMounted(() => {
     </div>
 
     <RouterLink to="analytics" class="flex gap-4 mb-4">
-      <FinanceCard
-        class="flex-1"
-        title="Spending"
-        :value="monthSpending"
-        bar-color-class="bg-red-primary"
-        :postfix="currency"
-      />
+      <FinanceCard class="flex-1" title="Spending" :value="monthSpending" bar-color-class="bg-red-primary" />
 
-      <FinanceCard
-        class="flex-1"
-        title="Income"
-        :value="monthIncome"
-        bar-color-class="bg-mint-primary"
-        :postfix="currency"
-      />
+      <FinanceCard class="flex-1" title="Income" :value="monthIncome" bar-color-class="bg-mint-primary" />
     </RouterLink>
 
     <WrapperContainer
