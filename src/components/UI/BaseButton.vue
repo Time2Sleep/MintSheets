@@ -11,7 +11,7 @@ withDefaults(
 
 <template>
   <button
-    class="rounded-xl p-3 disabled:bg-light-secondary"
+    class="rounded-xl px-3 py-2 disabled:bg-light-secondary"
     :class="{ 'bg-light-secondary': !active, 'bg-mint-primary': active }"
   >
     <slot />

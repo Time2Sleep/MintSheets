@@ -14,7 +14,7 @@ export const useFinanceStore = defineStore(
   () => {
     const transactions = ref<Transaction[]>([]);
     const pendingTransactions = ref<string[]>([]);
-    const categories = ref<string[]>(['Food', 'Transport', 'Salary', 'Utilities']); // Example categories
+    const categories = ref<string[]>([]); // Example categories
     const currency = ref<Currency>(CURRENCIES[0]);
 
     const addTransaction = async (transaction: TransactionFormData) => {

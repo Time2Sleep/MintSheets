@@ -6,10 +6,13 @@ const props = withDefaults(
     options: string[] | number[] | Record<string, string | number>[];
     placeholder?: string;
     labelKey?: string;
+    label?: string;
+    name: string;
   }>(),
   {
     placeholder: '',
     labelKey: '',
+    label: '',
   },
 );
 
@@ -23,18 +26,23 @@ const getOptionLabel = (option: Option): string | number => {
 </script>
 
 <template>
-  <select
-    v-model="value"
-    :aria-label="placeholder || 'select'"
-    class="select appearance-none block w-full bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl p-3 pr-10"
-    :class="{ 'text-light-secondary': !value }"
-  >
-    <option value="" disabled selected hidden>{{ placeholder }}</option>
-    <option :value="undefined" disabled selected hidden>{{ placeholder }}</option>
-    <option v-for="option in options" :key="getOptionLabel(option)" class="flex p-4" :value="option">
-      {{ getOptionLabel(option) }}
-    </option>
-  </select>
+  <label class="w-full flex flex-col gap-1">
+    <span v-if="label" class="text-sm">
+      {{ label }}
+    </span>
+    <select
+      v-model="value"
+      :aria-label="placeholder || 'select'"
+      class="select appearance-none block w-full bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl px-3 py-2 pr-10"
+      :class="{ 'text-light-secondary': !value }"
+    >
+      <option value="" disabled selected hidden>{{ placeholder }}</option>
+      <option :value="undefined" disabled selected hidden>{{ placeholder }}</option>
+      <option v-for="option in options" :key="getOptionLabel(option)" class="flex p-4" :value="option">
+        {{ getOptionLabel(option) }}
+      </option>
+    </select>
+  </label>
 </template>
 
 <style scoped>
