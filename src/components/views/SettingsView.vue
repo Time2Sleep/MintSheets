@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 import { router } from '../../router';
 import { CURRENCIES, type Currency } from '../../constants/currencies';
 import BaseLayout from '../BaseLayout.vue';
@@ -31,13 +31,12 @@ const isAddCategoryDisabled = computed<boolean>(
 
 const scrollableList = ref<HTMLElement>();
 
-const handleAdd = () => {
+const handleAdd = async () => {
   form.categories.push(categoryName.value);
   categoryName.value = '';
 
-  setTimeout(() => {
-    if (scrollableList.value) scrollableList.value.scrollTo({ top: scrollableList.value.offsetHeight });
-  });
+  await nextTick();
+  scrollableList.value?.scrollTo({ top: scrollableList.value.scrollHeight });
 };
 
 const isContinueDisabled = computed<boolean>(() => !form.categories.length || !form.currency || form.balance === '');
@@ -60,7 +59,7 @@ const removeCategory = (category: string) => {
           <h2 class="text-lg">Categories</h2>
           <div ref="scrollableList" class="max-h-[40vh] overflow-y-auto">
             <div v-for="(cat, index) in form.categories" :key="cat" class="my-2 flex gap-4 items-center">
-              <BaseButton class="py-1" @click="removeCategory(cat)">
+              <BaseButton type="button" class="py-1" @click="removeCategory(cat)">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"

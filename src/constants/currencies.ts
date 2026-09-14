@@ -171,11 +171,6 @@ export const CURRENCIES: Currency[] = [
     name: 'Algerian dinars',
   },
   {
-    code: 'EEK',
-    symbol: 'kr',
-    name: 'Estonian kroons',
-  },
-  {
     code: 'EGP',
     symbol: 'ج.م.',
     name: 'Egyptian pounds',
@@ -224,11 +219,6 @@ export const CURRENCIES: Currency[] = [
     code: 'HNL',
     symbol: 'L',
     name: 'Honduran lempiras',
-  },
-  {
-    code: 'HRK',
-    symbol: 'kn',
-    name: 'Croatian kunas',
   },
   {
     code: 'HUF',
@@ -319,16 +309,6 @@ export const CURRENCIES: Currency[] = [
     code: 'LKR',
     symbol: 'SL Re',
     name: 'Sri Lankan rupees',
-  },
-  {
-    code: 'LTL',
-    symbol: 'Lt',
-    name: 'Lithuanian litai',
-  },
-  {
-    code: 'LVL',
-    symbol: 'Ls',
-    name: 'Latvian lati',
   },
   {
     code: 'LYD',
@@ -561,11 +541,6 @@ export const CURRENCIES: Currency[] = [
     name: 'Uzbekistan som',
   },
   {
-    code: 'VEF',
-    symbol: 'Bs.F.',
-    name: 'Venezuelan bolívars',
-  },
-  {
     code: 'VND',
     symbol: '₫',
     name: 'Vietnamese dong',
@@ -589,11 +564,6 @@ export const CURRENCIES: Currency[] = [
     code: 'ZAR',
     symbol: 'R',
     name: 'South African rand',
-  },
-  {
-    code: 'ZMK',
-    symbol: 'ZK',
-    name: 'Zambian kwachas',
   },
   {
     code: 'ZWL',
