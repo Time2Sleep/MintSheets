@@ -8,9 +8,17 @@ import BaseInput from '../UI/BaseInput.vue';
 import BaseSelect from '../UI/BaseSelect.vue';
 import WrapperContainer from '../UI/WrapperContainer.vue';
 import EditableList from '../blocks/EditableList.vue';
+import { useFinanceStore } from '../../stores/finances';
+import { storeToRefs } from 'pinia';
+
+const financeStore = useFinanceStore();
+const { categories, currency } = storeToRefs(financeStore);
 
 const handleSubmit = () => {
   console.log('Handled settings submit');
+
+  currency.value = form.currency;
+  categories.value = [...form.spendingCategories, ...form.incomeCategories];
 
   router.push({ name: 'main' });
 };

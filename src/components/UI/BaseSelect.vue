@@ -32,6 +32,7 @@ const getOptionLabel = (option: Option): string | number => {
     </span>
     <select
       v-model="value"
+      :name="name"
       :aria-label="placeholder || 'select'"
       class="select appearance-none block w-full bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl px-3 py-2 pr-10"
       :class="{ 'text-light-secondary': !value }"
