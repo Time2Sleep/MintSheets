@@ -46,7 +46,7 @@ const clearForm = () => {
 
 <template>
   <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
-    <BaseInput v-model="form.date" placeholder="Date" type="date" />
+    <BaseInput v-model="form.date" name="date" placeholder="Date" type="date" />
 
     <div class="flex gap-4">
       <BaseButton
@@ -65,9 +65,9 @@ const clearForm = () => {
       </BaseButton>
     </div>
 
-    <BaseSelect v-model="form.category" placeholder="Category" :options="categories" />
-    <BaseInput v-model.number="form.amount" placeholder="Amount" type="number" />
-    <BaseInput v-model="form.comment" placeholder="Comment" />
+    <BaseSelect v-model="form.category" name="category" placeholder="Category" :options="categories" />
+    <BaseInput v-model.number="form.amount" name="amount" placeholder="Amount" type="number" />
+    <BaseInput v-model="form.comment" name="comment" placeholder="Comment" />
     <BaseButton type="submit" :disabled="!isFormValid">Confirm</BaseButton>
   </form>
 </template>

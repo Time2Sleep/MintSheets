@@ -2,11 +2,14 @@
 const props = withDefaults(
   defineProps<{
     placeholder?: string;
+    label?: string;
     type?: 'text' | 'number' | 'date';
+    name: string;
   }>(),
   {
     placeholder: '',
     type: 'text',
+    label: '',
   },
 );
 
@@ -27,12 +30,18 @@ const handleFocus = ({ target, isTrusted }: FocusEvent) => {
 </script>
 
 <template>
-  <input
-    v-model="value"
-    :aria-label="placeholder || 'input'"
-    class="bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl p-3"
-    :type="type"
-    :placeholder="placeholder"
-    @focus="handleFocus($event)"
-  />
+  <label class="w-full flex flex-col gap-1">
+    <span v-if="label" class="text-sm">
+      {{ label }}
+    </span>
+    <input
+      v-model="value"
+      :name="name"
+      :placeholder="placeholder"
+      :aria-label="label || placeholder || name + ' input'"
+      class="bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl py-2 px-3"
+      :type="type"
+      @focus="handleFocus($event)"
+    />
+  </label>
 </template>
