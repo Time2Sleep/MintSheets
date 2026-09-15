@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { router } from '../../router';
 import { CURRENCIES, type Currency } from '../../constants/currencies';
 import BaseLayout from '../BaseLayout.vue';
@@ -10,18 +10,10 @@ import WrapperContainer from '../UI/WrapperContainer.vue';
 import EditableList from '../blocks/EditableList.vue';
 import { useFinanceStore } from '../../stores/finances';
 import { storeToRefs } from 'pinia';
+import { saveSettings } from '../../services/settings';
 
 const financeStore = useFinanceStore();
 const { categories, currency } = storeToRefs(financeStore);
-
-const handleSubmit = () => {
-  console.log('Handled settings submit');
-
-  currency.value = form.currency;
-  categories.value = [...form.spendingCategories, ...form.incomeCategories];
-
-  router.push({ name: 'main' });
-};
 
 const form = reactive<{
   spendingCategories: string[];
@@ -29,7 +21,7 @@ const form = reactive<{
   balance: string;
   currency: Currency;
 }>({
-  spendingCategories: [],
+  spendingCategories: [...categories.value],
   incomeCategories: [],
   balance: '',
   currency: CURRENCIES[0],
@@ -38,6 +30,29 @@ const form = reactive<{
 const isContinueDisabled = computed<boolean>(
   () => !form.spendingCategories.length || !form.incomeCategories.length || !form.currency || form.balance === '',
 );
+
+const isError = ref<boolean>(false);
+const isLoading = ref<boolean>(false);
+
+const handleSubmit = async () => {
+  isLoading.value = true;
+
+  const saved = await saveSettings({
+    ...form,
+    currency: form.currency.code,
+  });
+
+  if (!saved) {
+    isError.value = true;
+    isLoading.value = false;
+    return;
+  }
+
+  currency.value = form.currency;
+  categories.value = [...form.spendingCategories, ...form.incomeCategories];
+
+  router.push({ name: 'main' });
+};
 </script>
 
 <template>
@@ -71,7 +86,9 @@ const isContinueDisabled = computed<boolean>(
           max-height="20vh"
         />
 
-        <BaseButton :disabled="isContinueDisabled" class="mt-4">Continue</BaseButton>
+        <BaseButton :disabled="isContinueDisabled || isLoading" class="mt-4">Continue</BaseButton>
+
+        <div v-if="isError" class="text-red-primary">Something went wrong, try again...</div>
       </WrapperContainer>
     </form>
   </BaseLayout>

@@ -61,7 +61,7 @@ export const saveTransactionsToSpreadsheet = async (transactions: Transaction[])
     const rows = transactions.map(transactionToRowData);
     const response = await batchUpdateSpreadsheet(googleStore.spreadsheetId, [
       buildInsertRowRequest(googleStore.sheetsId.transactions, 1, transactions.length + 1),
-      buildUpdateCellsValueRequest(googleStore.sheetsId.transactions, 1, rows),
+      buildUpdateCellsValueRequest(googleStore.sheetsId.transactions, 1, 0, rows),
     ]);
 
     const errorsCount = response.replies.reduce((acc, obj) => acc + Object.keys(obj).length, 0);

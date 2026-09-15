@@ -571,5 +571,3 @@ export const CURRENCIES: Currency[] = [
     name: 'Zimbabwean Dollar',
   },
 ];
-
-CURRENCIES.reduce((acc, item) => ({ [item['name']]: item['symbol'], ...acc }), {});

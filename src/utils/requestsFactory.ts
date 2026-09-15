@@ -1,4 +1,4 @@
-import type { SheetsRowData } from '../types/api';
+import type { SheetsCellData, SheetsRowData } from '../types/api';
 
 export const buildRenameSheetRequest = (sheetId: number, newTitle: string) => ({
   updateSheetProperties: {
@@ -32,6 +32,18 @@ export const buildRange = (
   endColumnIndex: endColumn,
 });
 
+export const buildRow = (data: (string | number)[]): SheetsRowData => {
+  const values: SheetsCellData[] = data.reduce((acc, cell) => [...acc, buildCell(cell)], [] as SheetsCellData[]);
+
+  return { values };
+};
+
+export const buildCell = (text: string | number) => {
+  const userEnteredValue = typeof text === 'string' ? { stringValue: text } : { numberValue: text };
+
+  return { userEnteredValue };
+};
+
 export const buildBoldCell = (text: string | number) => {
   const userEnteredValue = typeof text === 'string' ? { stringValue: text } : { numberValue: text };
 
@@ -50,12 +62,17 @@ export const buildInsertRowRequest = (sheetId: number, startIndex: number, endIn
   },
 });
 
-export const buildUpdateCellsValueRequest = (sheetId: number, rowIndex: number, rows: SheetsRowData[]) => ({
+export const buildUpdateCellsValueRequest = (
+  sheetId: number,
+  rowIndex: number,
+  columnIndex: number,
+  rows: SheetsRowData[],
+) => ({
   updateCells: {
     start: {
       sheetId,
       rowIndex,
-      columnIndex: 0,
+      columnIndex,
     },
     rows,
     fields: 'userEnteredValue,userEnteredFormat',
