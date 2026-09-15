@@ -44,21 +44,30 @@ export interface GetSheetPropertiesResponse {
   sheets: { properties: SheetProperties }[];
 }
 
+export interface SheetsCellData {
+  userEnteredValue: {
+    stringValue?: string;
+    numberValue?: number;
+  };
+  userEnteredFormat?: {
+    numberFormat?: {
+      type: 'TEXT' | 'DATE';
+      pattern?: string;
+    };
+    textFormat?: {
+      bold?: boolean;
+      italic?: boolean;
+    };
+  };
+}
+
 export interface SheetsRowData {
-  values: {
-    userEnteredValue: {
-      stringValue?: string;
-      numberValue?: number;
-    };
-    userEnteredFormat?: {
-      numberFormat?: {
-        type: 'TEXT' | 'DATE';
-        pattern?: string;
-      };
-      textFormat?: {
-        bold?: boolean;
-        italic?: boolean;
-      };
-    };
-  }[];
+  values: SheetsCellData[];
+}
+
+export interface SpreadsheetSettings {
+  balance: string;
+  currency: string;
+  incomeCategories: string[];
+  spendingCategories: string[];
 }
