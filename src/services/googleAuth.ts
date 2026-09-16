@@ -1,34 +1,12 @@
 import type { TokenClient, TokenResponse } from '../types/google';
 import { useGoogleStore } from '../stores/google';
-import { router } from '../router';
-import { syncTransactions } from './transactions';
+import { initializeUserSession } from './applicationInit';
 
 let tokenClient: TokenClient | null = null;
 
 export const initGoogle = () => {
   loadGoogleSDK()
-    .then(() => {
-      const googleStore = useGoogleStore();
-
-      return authenticateWithGoogle(async (token) => {
-        googleStore.setGoogleToken(token);
-        googleStore.isAuthError = false;
-
-        try {
-          console.log('[Auth Service] initializing cloud spreadsheet...');
-          await googleStore.findOrCreateSpreadsheet();
-          console.log('[Auth Service] Cloud spreadsheet successfully linked to session!');
-
-          await googleStore.getSheetsIDs();
-          await syncTransactions();
-
-          router.push({ name: 'settings' });
-        } catch (error) {
-          console.warn('[Auth Service] Critical error while preparing spreadsheet:', error);
-          googleStore.isAuthError = true;
-        }
-      });
-    })
+    .then(() => authenticateWithGoogle((token) => initializeUserSession(token)))
     .catch((err) => {
       console.warn(err);
       useGoogleStore().turnOfflineModeOn();

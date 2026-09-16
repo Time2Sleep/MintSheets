@@ -11,7 +11,7 @@ import { refreshGoogleToken } from '../services/googleAuth';
 import { useGoogleStore } from '../stores/google';
 
 const financeStore = useFinanceStore();
-const { categories } = storeToRefs(financeStore);
+const { spendingCategories, incomeCategories } = storeToRefs(financeStore);
 
 const googleStore = useGoogleStore();
 
@@ -22,6 +22,15 @@ const form = reactive<TransactionFormData>({
   comment: '',
   type: TransactionTypes.SPENDING,
 });
+
+const options = computed<string[]>(() =>
+  form.type === TransactionTypes.SPENDING ? spendingCategories.value : incomeCategories.value,
+);
+
+const changeTransactionType = (type: TransactionFormData['type']) => {
+  form.type = type;
+  form.category = '';
+};
 
 const isFormValid = computed<boolean>(() => {
   return form.date !== '' && form.category !== '' && Number.isFinite(Number(form.amount)) && Number(form.amount) > 0;
@@ -52,20 +61,20 @@ const clearForm = () => {
       <BaseButton
         class="flex-1"
         :active="form.type === TransactionTypes.SPENDING"
-        @click.prevent="form.type = TransactionTypes.SPENDING"
+        @click.prevent="changeTransactionType(TransactionTypes.SPENDING)"
       >
         Spending
       </BaseButton>
       <BaseButton
         class="flex-1"
         :active="form.type === TransactionTypes.INCOME"
-        @click.prevent="form.type = TransactionTypes.INCOME"
+        @click.prevent="changeTransactionType(TransactionTypes.INCOME)"
       >
         Income
       </BaseButton>
     </div>
 
-    <BaseSelect v-model="form.category" name="category" placeholder="Category" :options="categories" />
+    <BaseSelect v-model="form.category" name="category" placeholder="Category" :options="options" />
     <BaseInput v-model.number="form.amount" name="amount" placeholder="Amount" type="number" />
     <BaseInput v-model="form.comment" name="comment" placeholder="Comment" />
     <BaseButton type="submit" :disabled="!isFormValid">Confirm</BaseButton>

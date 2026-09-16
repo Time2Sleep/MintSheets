@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import { TransactionTypes, type Transaction, type TransactionFormData } from '../types/finances';
+import {
+  TransactionTypes,
+  type SpreadsheetSettingsFormData,
+  type Transaction,
+  type TransactionFormData,
+} from '../types/finances';
 import { dateToHumanReadable, isCurrentMonth } from '../utils/date';
 import {
   formDataToTransaction,
@@ -8,13 +13,18 @@ import {
   saveTransactionsToSpreadsheet,
 } from '../services/transactions';
 import { CURRENCIES, type Currency } from '../constants/currencies';
+import { fetchSettingsFromSpreadsheet, saveSettingsToSpreadsheet } from '../services/settings';
+import { useGoogleStore } from './google';
+import { getCurrencyByCode } from '../utils/currency';
 
 export const useFinanceStore = defineStore(
   'finances',
   () => {
+    const initialBalance = ref<number>(0);
     const transactions = ref<Transaction[]>([]);
     const pendingTransactions = ref<string[]>([]);
-    const categories = ref<string[]>([]); // Example categories
+    const spendingCategories = ref<string[]>([]);
+    const incomeCategories = ref<string[]>([]);
     const currency = ref<Currency>(CURRENCIES[0]);
 
     const addTransaction = async (transaction: TransactionFormData) => {
@@ -66,8 +76,43 @@ export const useFinanceStore = defineStore(
       return groupTransactions(transactionsSorted.value);
     });
 
+    const getSettings = async (spreadsheetId: string) => {
+      const settings = await fetchSettingsFromSpreadsheet(spreadsheetId);
+
+      if (!settings) return;
+
+      initialBalance.value = settings.balance;
+      currency.value = settings.currency;
+      spendingCategories.value = settings.spendingCategories;
+      incomeCategories.value = settings.incomeCategories;
+    };
+
+    const saveSettings = async (settings: SpreadsheetSettingsFormData): Promise<boolean> => {
+      const googleStore = useGoogleStore();
+
+      if (!googleStore.spreadsheetId || googleStore.sheetsId.total == null) {
+        return false;
+      }
+
+      try {
+        await saveSettingsToSpreadsheet(googleStore.spreadsheetId, googleStore.sheetsId.total, settings);
+
+        initialBalance.value = Number(settings.balance);
+        currency.value = getCurrencyByCode(settings.currency) || CURRENCIES[0];
+        spendingCategories.value = settings.spendingCategories;
+        incomeCategories.value = settings.incomeCategories;
+
+        return true;
+      } catch (error) {
+        console.warn('[Finance Store] Failed to save settings:', error);
+        return false;
+      }
+    };
+
     return {
-      categories,
+      initialBalance,
+      spendingCategories,
+      incomeCategories,
       transactions,
       monthIncome,
       monthSpending,
@@ -75,6 +120,8 @@ export const useFinanceStore = defineStore(
       allTransactionsGrouped,
       currency,
       pendingTransactions,
+      getSettings,
+      saveSettings,
     };
   },
   {

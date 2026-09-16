@@ -2,7 +2,12 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { findSpreadsheetById, findSpreadsheetByTitle } from '../api/sheets';
 import { router } from '../router';
-import { getSpreadsheetTabsIDs, initSpreadsheet, isSpreadsheetActive, setupSpreadsheet } from '../services/spreadsheet';
+import {
+  getSpreadsheetStatus,
+  getSpreadsheetTabsIDs,
+  initSpreadsheet,
+  setupSpreadsheet,
+} from '../services/spreadsheet';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -50,17 +55,17 @@ export const useGoogleStore = defineStore(
           const foundById = await findSpreadsheetById(spreadsheetId.value);
 
           if (foundById) {
-            const isActive = await isSpreadsheetActive(spreadsheetId.value);
-            if (isActive) return spreadsheetId.value;
+            const status = await getSpreadsheetStatus(spreadsheetId.value);
+            if (status) return spreadsheetId.value;
           }
         }
 
         const title = 'MintSheets_financial_spreadsheet_MVP';
         const id = await findSpreadsheetByTitle(title);
         if (id) {
-          const isActive = await isSpreadsheetActive(id);
+          const status = await getSpreadsheetStatus(id);
 
-          if (isActive) {
+          if (status) {
             spreadsheetId.value = id;
             return id;
           }

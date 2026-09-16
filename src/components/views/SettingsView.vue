@@ -10,10 +10,10 @@ import WrapperContainer from '../UI/WrapperContainer.vue';
 import EditableList from '../blocks/EditableList.vue';
 import { useFinanceStore } from '../../stores/finances';
 import { storeToRefs } from 'pinia';
-import { saveSettings } from '../../services/settings';
 
 const financeStore = useFinanceStore();
-const { categories, currency } = storeToRefs(financeStore);
+const { spendingCategories, incomeCategories, currency } = storeToRefs(financeStore);
+const { saveSettings } = financeStore;
 
 const form = reactive<{
   spendingCategories: string[];
@@ -21,10 +21,10 @@ const form = reactive<{
   balance: string;
   currency: Currency;
 }>({
-  spendingCategories: [...categories.value],
-  incomeCategories: [],
+  spendingCategories: [...spendingCategories.value],
+  incomeCategories: [...incomeCategories.value],
   balance: '',
-  currency: CURRENCIES[0],
+  currency: currency.value,
 });
 
 const isContinueDisabled = computed<boolean>(
@@ -47,9 +47,6 @@ const handleSubmit = async () => {
     isLoading.value = false;
     return;
   }
-
-  currency.value = form.currency;
-  categories.value = [...form.spendingCategories, ...form.incomeCategories];
 
   router.push({ name: 'main' });
 };
