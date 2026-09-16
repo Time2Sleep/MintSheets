@@ -53,8 +53,8 @@ export const setupSpreadsheet = async (id: string): Promise<boolean> => {
     ];
 
     await batchUpdateSpreadsheet(id, [
-      buildUpdateCellsValueRequest(0, 0, totalSheetInitData), //write init data to 'Total'
-      buildUpdateCellsValueRequest(transactionsSheetId, 0, transactionsSheetInitData), //write init data to 'Transactions'
+      buildUpdateCellsValueRequest(0, 0, 0, totalSheetInitData), //write init data to 'Total'
+      buildUpdateCellsValueRequest(transactionsSheetId, 0, 0, transactionsSheetInitData), //write init data to 'Transactions'
       buildConvertToTableRequest('Transactions', transactionsSheetId),
     ]);
 
