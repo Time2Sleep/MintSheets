@@ -5,9 +5,8 @@ import WrapperContainer from '../UI/WrapperContainer.vue';
 import { useFinanceStore } from '../../stores/finances';
 import { storeToRefs } from 'pinia';
 import TransactionsList from '../TransactionsList.vue';
-import { onBeforeMount, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useGoogleStore } from '../../stores/google';
-import { syncTransactions } from '../../services/transactions';
 
 const financeStore = useFinanceStore();
 const { monthSpending, monthIncome } = storeToRefs(financeStore);
@@ -20,10 +19,6 @@ const content = ref<HTMLElement | null>(null);
 const offsetHeight = ref(0);
 
 const bottomSheetExpanded = ref(false);
-
-onBeforeMount(() => {
-  syncTransactions();
-});
 
 onMounted(() => {
   offsetHeight.value = content.value?.offsetHeight || 0;

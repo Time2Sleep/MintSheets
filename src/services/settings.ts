@@ -28,6 +28,10 @@ export const saveSettingsToSpreadsheet = async (
 export const fetchSettingsFromSpreadsheet = async (spreadsheetId: string): Promise<SpreadsheetSettings> => {
   const rows = await getSpreadsheetValues(spreadsheetId, 'Total!A3:C');
 
+  if (!rows.length) {
+    throw new Error('Spreadsheet settings are missing');
+  }
+
   const balance = Number(rows[0][1]);
   const currency = getCurrencyByCode(rows[0][2]) || CURRENCIES[0];
   const spendingCategories: string[] = [];

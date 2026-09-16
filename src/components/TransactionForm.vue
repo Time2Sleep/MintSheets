@@ -28,6 +28,8 @@ const options = computed<string[]>(() =>
 );
 
 const changeTransactionType = (type: TransactionFormData['type']) => {
+  if (form.type === type) return;
+
   form.type = type;
   form.category = '';
 };
