@@ -91,6 +91,10 @@ export const getSpreadsheetValues = async <T extends SpreadsheetValue>(
 };
 
 export const getSheetsProperties = async (spreadsheetId: string): Promise<GetSheetPropertiesResponse> => {
-  const response = await apiClient.get<GetSheetPropertiesResponse>(`/${spreadsheetId}?&fields=sheets.properties`);
+  const response = await apiClient.get<GetSheetPropertiesResponse>(`/${spreadsheetId}`, {
+    params: {
+      fields: 'sheets.properties',
+    },
+  });
   return response.data;
 };
