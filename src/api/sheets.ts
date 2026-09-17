@@ -5,7 +5,8 @@ import type {
   BatchUpdateResponse,
   CreateSpreadsheetResponse,
   GetSheetPropertiesResponse,
-  GoogleDriveFilesReponse,
+  GoogleDriveFilesResponse,
+  SpreadsheetValue,
 } from '../types/api';
 
 export const findSpreadsheetByTitle = async (title: string): Promise<string | null> => {
@@ -13,7 +14,7 @@ export const findSpreadsheetByTitle = async (title: string): Promise<string | nu
 
   const query = `name = '${escapedTitle}' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`;
 
-  const response = await apiClient.get<GoogleDriveFilesReponse>('https://www.googleapis.com/drive/v3/files', {
+  const response = await apiClient.get<GoogleDriveFilesResponse>('https://www.googleapis.com/drive/v3/files', {
     params: {
       q: query,
       fields: 'files(id)',
@@ -76,10 +77,14 @@ export const appendSpreadsheetRows = async (
   return response.data;
 };
 
-export const getSpreadsheetValues = async (spreadsheetId: string, range: string): Promise<string[][]> => {
-  const response = await apiClient.get<{ values: string[][] }>(`/${spreadsheetId}/values/${range}`, {
+export const getSpreadsheetValues = async <T extends SpreadsheetValue>(
+  spreadsheetId: string,
+  range: string,
+  formatted = false,
+): Promise<T[][]> => {
+  const response = await apiClient.get<{ values: T[][] }>(`/${spreadsheetId}/values/${range}`, {
     params: {
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: formatted ? 'FORMATTED_VALUE' : 'UNFORMATTED_VALUE',
     },
   });
   return response.data.values || [];

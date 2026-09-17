@@ -85,8 +85,8 @@ export const getSpreadsheetTabsIDs = async (id: string): Promise<Record<string, 
   );
 };
 
-export const getSpreadsheetStatus = async (id: string): Promise<string> => {
-  const values = await getSpreadsheetValues(id, 'Total!B1:B1');
+export const getSpreadsheetStatus = async (id: string): Promise<string | null> => {
+  const values = await getSpreadsheetValues<string | null>(id, 'Total!B1:B1');
 
   return values[0]?.[0];
 };
