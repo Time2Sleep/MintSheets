@@ -64,10 +64,3 @@ export interface SheetsCellData {
 export interface SheetsRowData {
   values: SheetsCellData[];
 }
-
-export interface SpreadsheetSettings {
-  balance: string;
-  currency: string;
-  incomeCategories: string[];
-  spendingCategories: string[];
-}

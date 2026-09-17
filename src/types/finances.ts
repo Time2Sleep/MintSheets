@@ -1,3 +1,5 @@
+import type { Currency } from '../constants/currencies';
+
 export const TransactionTypes = {
   INCOME: 'income',
   SPENDING: 'spending',
@@ -19,3 +21,17 @@ export type TransactionFormData = {
   date: string;
   comment: string;
 };
+
+export interface SpreadsheetSettings {
+  balance: number;
+  currency: Currency;
+  spendingCategories: string[];
+  incomeCategories: string[];
+}
+
+export interface SpreadsheetSettingsFormData {
+  balance: string;
+  currency: string;
+  incomeCategories: string[];
+  spendingCategories: string[];
+}

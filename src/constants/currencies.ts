@@ -22,7 +22,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'AED',
-    symbol: 'د.إ.',
+    symbol: 'د.إ',
     name: 'UAE dirhams',
   },
   {
@@ -37,7 +37,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'AMD',
-    symbol: 'դր.',
+    symbol: 'դր',
     name: 'Armenian drams',
   },
   {
@@ -52,7 +52,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'AZN',
-    symbol: 'ман.',
+    symbol: 'ман',
     name: 'Azerbaijani manats',
   },
   {
@@ -67,12 +67,12 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'BGN',
-    symbol: 'лв.',
+    symbol: 'лв',
     name: 'Bulgarian leva',
   },
   {
     code: 'BHD',
-    symbol: 'د.ب.',
+    symbol: 'د.ب',
     name: 'Bahraini dinars',
   },
   {
@@ -102,7 +102,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'BYN',
-    symbol: 'руб.',
+    symbol: 'руб',
     name: 'Belarusian rubles',
   },
   {
@@ -167,12 +167,12 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'DZD',
-    symbol: 'د.ج.',
+    symbol: 'د.ج',
     name: 'Algerian dinars',
   },
   {
     code: 'EGP',
-    symbol: 'ج.م.',
+    symbol: 'ج.م',
     name: 'Egyptian pounds',
   },
   {
@@ -242,7 +242,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'IQD',
-    symbol: 'د.ع.',
+    symbol: 'د.ع',
     name: 'Iraqi dinars',
   },
   {
@@ -262,7 +262,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'JOD',
-    symbol: 'د.أ.',
+    symbol: 'د.أ',
     name: 'Jordanian dinars',
   },
   {
@@ -292,17 +292,17 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'KWD',
-    symbol: 'د.ك.',
+    symbol: 'د.ك',
     name: 'Kuwaiti dinars',
   },
   {
     code: 'KZT',
-    symbol: 'тңг.',
+    symbol: 'тңг',
     name: 'Kazakhstani tenges',
   },
   {
     code: 'LBP',
-    symbol: 'ل.ل.',
+    symbol: 'ل.ل',
     name: 'Lebanese pounds',
   },
   {
@@ -312,12 +312,12 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'LYD',
-    symbol: 'د.ل.',
+    symbol: 'د.ل',
     name: 'Libyan dinars',
   },
   {
     code: 'MAD',
-    symbol: 'د.م.',
+    symbol: 'د.م',
     name: 'Moroccan dirhams',
   },
   {
@@ -397,17 +397,17 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'OMR',
-    symbol: 'ر.ع.',
+    symbol: 'ر.ع',
     name: 'Omani rials',
   },
   {
     code: 'PAB',
-    symbol: 'B/.',
+    symbol: 'B/',
     name: 'Panamanian balboas',
   },
   {
     code: 'PEN',
-    symbol: 'S/.',
+    symbol: 'S/',
     name: 'Peruvian nuevos soles',
   },
   {
@@ -432,7 +432,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'QAR',
-    symbol: 'ر.ق.',
+    symbol: 'ر.ق',
     name: 'Qatari rials',
   },
   {
@@ -442,12 +442,12 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'RSD',
-    symbol: 'дин.',
+    symbol: 'дин',
     name: 'Serbian dinars',
   },
   {
     code: 'RUB',
-    symbol: '₽.',
+    symbol: '₽',
     name: 'Russian rubles',
   },
   {
@@ -457,7 +457,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'SAR',
-    symbol: 'ر.س.',
+    symbol: 'ر.س',
     name: 'Saudi riyals',
   },
   {
@@ -482,7 +482,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'SYP',
-    symbol: 'ل.س.',
+    symbol: 'ل.س',
     name: 'Syrian pounds',
   },
   {
@@ -492,7 +492,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'TND',
-    symbol: 'د.ت.',
+    symbol: 'د.ت',
     name: 'Tunisian dinars',
   },
   {
@@ -557,7 +557,7 @@ export const CURRENCIES: Currency[] = [
   },
   {
     code: 'YER',
-    symbol: 'ر.ي.',
+    symbol: 'ر.ي',
     name: 'Yemeni rials',
   },
   {

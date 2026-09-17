@@ -29,7 +29,7 @@ export const setupSpreadsheet = async (id: string): Promise<boolean> => {
 
     const totalSheetInitData: SheetsRowData[] = [
       {
-        values: [buildBoldCell('status'), { userEnteredValue: { stringValue: 'active' } }],
+        values: [buildBoldCell('status'), { userEnteredValue: { stringValue: 'draft' } }],
       },
       { values: [] },
       {
@@ -85,7 +85,8 @@ export const getSpreadsheetTabsIDs = async (id: string): Promise<Record<string, 
   );
 };
 
-export const isSpreadsheetActive = async (id: string): Promise<boolean> => {
+export const getSpreadsheetStatus = async (id: string): Promise<string> => {
   const values = await getSpreadsheetValues(id, 'Total!B1:B1');
-  return values[0]?.[0] === 'active';
+
+  return values[0]?.[0];
 };

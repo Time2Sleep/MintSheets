@@ -1,38 +1,51 @@
-import { storeToRefs } from 'pinia';
-import { batchUpdateSpreadsheet } from '../api/sheets';
-import { useGoogleStore } from '../stores/google';
-import type { SheetsRowData, SpreadsheetSettings } from '../types/api';
+import { batchUpdateSpreadsheet, getSpreadsheetValues } from '../api/sheets';
+import type { SheetsRowData } from '../types/api';
 import { buildRow, buildUpdateCellsValueRequest } from '../utils/requestsFactory';
+import { getCurrencyByCode } from '../utils/currency';
+import { CURRENCIES } from '../constants/currencies';
+import type { SpreadsheetSettings, SpreadsheetSettingsFormData } from '../types/finances';
 
-export const saveSettings = async (saveData: SpreadsheetSettings): Promise<boolean> => {
-  const googleStore = useGoogleStore();
-  const { spreadsheetId, sheetsId } = storeToRefs(googleStore);
+export const saveSettingsToSpreadsheet = async (
+  spreadsheetId: string,
+  totalSheetId: number,
+  saveData: SpreadsheetSettingsFormData,
+): Promise<void> => {
+  const spendingCategoriesRows: SheetsRowData[] = saveData.spendingCategories.map((category) => buildRow([category]));
+  const incomeCategoriesRows: SheetsRowData[] = saveData.incomeCategories.map((category) => buildRow([category]));
 
-  if (!spreadsheetId.value || sheetsId.value.total == null) return false;
+  const saveBalanceAndCurrency = buildUpdateCellsValueRequest(totalSheetId, 2, 1, [
+    buildRow([Number(saveData.balance), saveData.currency]),
+  ]);
+  const saveSpendingCategories = buildUpdateCellsValueRequest(totalSheetId, 5, 0, spendingCategoriesRows);
+  const saveIncomegCategories = buildUpdateCellsValueRequest(totalSheetId, 5, 1, incomeCategoriesRows);
+  const setStatusToActive = buildUpdateCellsValueRequest(0, 0, 1, [buildRow(['active'])]);
 
-  try {
-    const spendingCategoriesRows: SheetsRowData[] = saveData.spendingCategories.reduce((acc, category) => {
-      return [...acc, buildRow([category])];
-    }, [] as SheetsRowData[]);
+  const requestBody = [setStatusToActive, saveBalanceAndCurrency, saveSpendingCategories, saveIncomegCategories];
 
-    const incomeCategoriesRows: SheetsRowData[] = saveData.incomeCategories.reduce((acc, category) => {
-      return [...acc, buildRow([category])];
-    }, [] as SheetsRowData[]);
+  await batchUpdateSpreadsheet(spreadsheetId, requestBody);
+};
 
-    const saveBalanceAndCurrency = buildUpdateCellsValueRequest(sheetsId.value.total, 2, 1, [
-      buildRow([Number(saveData.balance), saveData.currency]),
-    ]);
-    const saveSpendingCategories = buildUpdateCellsValueRequest(sheetsId.value.total, 5, 0, spendingCategoriesRows);
-    const saveIncomegCategories = buildUpdateCellsValueRequest(sheetsId.value.total, 5, 1, incomeCategoriesRows);
+export const fetchSettingsFromSpreadsheet = async (spreadsheetId: string): Promise<SpreadsheetSettings> => {
+  const rows = await getSpreadsheetValues(spreadsheetId, 'Total!A3:C');
 
-    const requestBody = [saveBalanceAndCurrency, saveSpendingCategories, saveIncomegCategories];
-
-    await batchUpdateSpreadsheet(spreadsheetId.value, requestBody);
-
-    return true;
-  } catch (error) {
-    console.warn('Failed to save settings', error);
-
-    return false;
+  if (!rows.length) {
+    throw new Error('Spreadsheet settings are missing');
   }
+
+  const balance = Number(rows[0][1]);
+  const currency = getCurrencyByCode(rows[0][2]) || CURRENCIES[0];
+  const spendingCategories: string[] = [];
+  const incomeCategories: string[] = [];
+
+  rows.slice(3).forEach((row) => {
+    if (row[0]) spendingCategories.push(row[0]);
+    if (row[1]) incomeCategories.push(row[1]);
+  });
+
+  return {
+    balance,
+    currency,
+    spendingCategories,
+    incomeCategories,
+  };
 };
