@@ -8,6 +8,7 @@ import {
   initSpreadsheet,
   setupSpreadsheet,
 } from '../services/spreadsheet';
+import { setAuthorizationHeader } from '../api';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -28,6 +29,8 @@ export const useGoogleStore = defineStore(
       googleToken.value = token;
       mintsWasConnected.value = true;
 
+      setAuthorizationHeader(token);
+
       if (logoutTimer) {
         clearTimeout(logoutTimer);
       }
@@ -45,6 +48,7 @@ export const useGoogleStore = defineStore(
       spreadsheetId.value = null;
       sheetsId.value = {};
       mintsWasConnected.value = false;
+      setAuthorizationHeader(null);
     };
 
     const findOrCreateSpreadsheet = async (): Promise<string> => {
