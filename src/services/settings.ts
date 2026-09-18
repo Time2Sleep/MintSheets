@@ -32,14 +32,26 @@ export const fetchSettingsFromSpreadsheet = async (spreadsheetId: string): Promi
     throw new Error('Spreadsheet settings are missing');
   }
 
-  const balance = Number(rows[0][1]);
-  const currency = getCurrencyByCode(rows[0][2]) || CURRENCIES[0];
+  const balance = typeof rows[0][1] === 'number' ? rows[0][1] : 0;
+
+  const currencyCode = typeof rows[0][2] === 'string' ? rows[0][2] : CURRENCIES[0].code;
+
+  const currency = getCurrencyByCode(currencyCode) || CURRENCIES[0];
+
   const spendingCategories: string[] = [];
   const incomeCategories: string[] = [];
 
   rows.slice(3).forEach((row) => {
-    if (row[0]) spendingCategories.push(row[0]);
-    if (row[1]) incomeCategories.push(row[1]);
+    const spendingCategory = row[0];
+    const incomeCategory = row[1];
+
+    if (typeof spendingCategory === 'string' && spendingCategory) {
+      spendingCategories.push(spendingCategory);
+    }
+
+    if (typeof incomeCategory === 'string' && incomeCategory) {
+      incomeCategories.push(incomeCategory);
+    }
   });
 
   return {

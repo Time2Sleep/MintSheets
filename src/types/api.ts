@@ -10,7 +10,7 @@ export interface GoogleDriveFile {
   id: string;
 }
 
-export interface GoogleDriveFilesReponse {
+export interface GoogleDriveFilesResponse {
   files: GoogleDriveFile[];
 }
 
@@ -64,3 +64,5 @@ export interface SheetsCellData {
 export interface SheetsRowData {
   values: SheetsCellData[];
 }
+
+export type SpreadsheetValue = string | number | boolean | null;

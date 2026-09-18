@@ -24,21 +24,33 @@ const isTransactionType = (value: string): value is Transaction['type'] => {
   return Object.values(TransactionTypes).includes(value as Transaction['type']);
 };
 
-export const rowToTransaction = ([id, date, type, category, amount, comment]: string[]): Transaction | null => {
-  const parsedDate = sheetDateToStringDate(date);
-  const parsedAmount = parseFloat(amount);
-
-  if (!Number.isFinite(parsedAmount) || !isTransactionType(type) || !parsedDate || !category) {
+export const rowToTransaction = ([id, date, type, category, amount, comment]: (
+  string | number
+)[]): Transaction | null => {
+  if (
+    typeof id !== 'string' ||
+    typeof date !== 'number' ||
+    typeof type !== 'string' ||
+    typeof category !== 'string' ||
+    typeof amount !== 'number'
+  ) {
     return null;
   }
+  const parsedDate = sheetDateToStringDate(date);
+
+  if (!isTransactionType(type) || !parsedDate || !category) {
+    return null;
+  }
+
+  const normalizedComment = typeof comment === 'string' ? comment : '';
 
   return {
     id,
     date: parsedDate,
     type,
     category,
-    amount: parsedAmount,
-    comment,
+    amount,
+    comment: normalizedComment,
   };
 };
 
@@ -77,7 +89,7 @@ export const getTransactionsFromSpreadsheet = async (): Promise<Transaction[]> =
   const googleStore = useGoogleStore();
   if (!googleStore.spreadsheetId) return Promise.reject('Spreadsheet ID is not set');
 
-  const rows = await getSpreadsheetValues(googleStore.spreadsheetId, 'Transactions!A2:F');
+  const rows = await getSpreadsheetValues<string | number>(googleStore.spreadsheetId, 'Transactions!A2:F');
 
   return rows.map(rowToTransaction).filter((transaction): transaction is Transaction => transaction !== null);
 };
