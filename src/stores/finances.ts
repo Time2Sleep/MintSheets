@@ -9,8 +9,9 @@ import {
 import { dateToHumanReadable, isCurrentMonth } from '../utils/date';
 import {
   formDataToTransaction,
-  removeTransactionsFromPending,
+  getTransactionsFromSpreadsheet,
   saveTransactionsToSpreadsheet,
+  syncTransactions,
 } from '../services/transactions';
 import { CURRENCIES, type Currency } from '../constants/currencies';
 import { fetchSettingsFromSpreadsheet, saveSettingsToSpreadsheet } from '../services/settings';
@@ -22,7 +23,7 @@ export const useFinanceStore = defineStore(
   () => {
     const initialBalance = ref<number>(0);
     const transactions = ref<Transaction[]>([]);
-    const pendingTransactions = ref<string[]>([]);
+    const pendingTransactions = ref<Transaction[]>([]);
     const spendingCategories = ref<string[]>([]);
     const incomeCategories = ref<string[]>([]);
     const currency = ref<Currency>(CURRENCIES[0]);
@@ -34,12 +35,11 @@ export const useFinanceStore = defineStore(
 
       const transactionId = crypto.randomUUID();
       const transactionToPush = { ...transactionData, id: transactionId };
-      transactions.value.unshift(transactionToPush);
-      pendingTransactions.value.push(transactionId);
+      pendingTransactions.value.unshift({ ...transactionToPush, pending: true });
 
       const result = await saveTransactionsToSpreadsheet([transactionToPush]);
 
-      if (result) removeTransactionsFromPending(transactionId);
+      if (result) _setTransactionsConfirmed([transactionId]);
     };
 
     const monthIncome = computed<number>(() => {
@@ -54,8 +54,10 @@ export const useFinanceStore = defineStore(
         .reduce((total, transaction) => total + transaction.amount, 0);
     });
 
-    const transactionsSorted = computed<Transaction[]>(() => {
-      return [...transactions.value].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const allTransactionsSorted = computed<Transaction[]>(() => {
+      return [...pendingTransactions.value, ...transactions.value].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
     });
 
     const groupTransactions = (list: Transaction[]): Record<string, Transaction[]> => {
@@ -73,7 +75,7 @@ export const useFinanceStore = defineStore(
     };
 
     const allTransactionsGrouped = computed(() => {
-      return groupTransactions(transactionsSorted.value);
+      return groupTransactions(allTransactionsSorted.value);
     });
 
     const getSettings = async (spreadsheetId: string) => {
@@ -109,6 +111,34 @@ export const useFinanceStore = defineStore(
       }
     };
 
+    const syncLocalTransactions = async (spreadsheetId: string) => {
+      const { syncedIds, unsyncedIds } = await syncTransactions(pendingTransactions.value, spreadsheetId);
+
+      if (unsyncedIds.length) console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
+
+      _setTransactionsConfirmed(syncedIds);
+    };
+
+    const getTransactions = async (spreadsheetId: string) => {
+      try {
+        transactions.value = await getTransactionsFromSpreadsheet(spreadsheetId);
+      } catch (error) {
+        console.warn('[Finance Store]: Failed to recieve transactions.', error);
+      }
+    };
+
+    const _setTransactionsConfirmed = (transactionIDs: string[]) => {
+      if (!transactionIDs.length) return;
+
+      const confirmedTransactions = pendingTransactions.value
+        .filter(({ id }) => transactionIDs.includes(id))
+        .map((transaction) => ({ ...transaction, pending: false }));
+
+      pendingTransactions.value = pendingTransactions.value.filter(({ id }) => !transactionIDs.includes(id));
+
+      transactions.value.unshift(...confirmedTransactions);
+    };
+
     return {
       initialBalance,
       spendingCategories,
@@ -122,6 +152,8 @@ export const useFinanceStore = defineStore(
       pendingTransactions,
       getSettings,
       saveSettings,
+      syncLocalTransactions,
+      getTransactions,
     };
   },
   {

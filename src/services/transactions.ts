@@ -1,5 +1,4 @@
 import { batchUpdateSpreadsheet, getSpreadsheetValues } from '../api/sheets';
-import { useFinanceStore } from '../stores/finances';
 import { useGoogleStore } from '../stores/google';
 import type { SheetsRowData } from '../types/api';
 import { type Transaction, type TransactionFormData, TransactionTypes } from '../types/finances';
@@ -85,67 +84,36 @@ export const saveTransactionsToSpreadsheet = async (transactions: Transaction[])
   }
 };
 
-export const getTransactionsFromSpreadsheet = async (): Promise<Transaction[]> => {
-  const googleStore = useGoogleStore();
-  if (!googleStore.spreadsheetId) return Promise.reject('Spreadsheet ID is not set');
-
-  const rows = await getSpreadsheetValues<string | number>(googleStore.spreadsheetId, 'Transactions!A2:F');
+export const getTransactionsFromSpreadsheet = async (spreadsheetId: string): Promise<Transaction[]> => {
+  const rows = await getSpreadsheetValues<string | number>(spreadsheetId, 'Transactions!A2:F');
 
   return rows.map(rowToTransaction).filter((transaction): transaction is Transaction => transaction !== null);
 };
 
-export const syncTransactions = async () => {
-  const remoteTransactions = await getTransactionsFromSpreadsheet();
+export const syncTransactions = async (
+  transactionsToSync: Transaction[],
+  spreadsheetId: string,
+): Promise<{ syncedIds: string[]; unsyncedIds: string[] }> => {
+  const remoteTransactions = await getTransactionsFromSpreadsheet(spreadsheetId);
 
-  const financesStore = useFinanceStore();
+  if (!transactionsToSync.length) return { syncedIds: [], unsyncedIds: [] };
 
-  if (!financesStore.pendingTransactions.length) {
-    financesStore.transactions = remoteTransactions;
-    return;
+  const remoteTransactionsIDs = new Set(remoteTransactions.map(({ id }) => id));
+
+  const transactionsToResend = transactionsToSync.filter(({ id }) => !remoteTransactionsIDs.has(id));
+
+  if (!transactionsToResend.length) {
+    return {
+      syncedIds: transactionsToSync.map(({ id }) => id),
+      unsyncedIds: [],
+    };
   }
 
-  const confirmedTransactionIds = new Set<string>();
-  const remoteTransactionsIDs = new Set(remoteTransactions.map(({ id }) => id));
-  const persistedTransactionsDictionary = financesStore.transactions.reduce(
-    (acc, cur) => {
-      acc[cur.id] = cur;
-      return acc;
-    },
-    {} as Record<string, Transaction>,
-  );
+  const isSaved = await saveTransactionsToSpreadsheet(transactionsToResend);
+  const transactionsIDs = transactionsToResend.map(({ id }) => id);
 
-  const resentTransactions: Transaction[] = [];
-
-  financesStore.pendingTransactions.forEach((id) => {
-    if (remoteTransactionsIDs.has(id)) {
-      confirmedTransactionIds.add(id);
-
-      return;
-    }
-
-    const persistedTransaction = persistedTransactionsDictionary[id];
-
-    if (persistedTransaction) {
-      resentTransactions.push(persistedTransaction);
-    }
-  });
-
-  financesStore.pendingTransactions = financesStore.pendingTransactions.filter(
-    (id) => !confirmedTransactionIds.has(id),
-  );
-
-  financesStore.transactions = [...resentTransactions, ...remoteTransactions];
-
-  if (!resentTransactions.length) return;
-  const result = await saveTransactionsToSpreadsheet(resentTransactions);
-
-  if (result) removeTransactionsFromPending(resentTransactions.map(({ id }) => id));
-};
-
-export const removeTransactionsFromPending = (transactionIDs: string | string[]) => {
-  const financesStore = useFinanceStore();
-
-  if (Array.isArray(transactionIDs))
-    financesStore.pendingTransactions = financesStore.pendingTransactions.filter((id) => !transactionIDs.includes(id));
-  else financesStore.pendingTransactions = financesStore.pendingTransactions.filter((id) => id !== transactionIDs);
+  return {
+    syncedIds: isSaved ? transactionsIDs : [],
+    unsyncedIds: isSaved ? [] : transactionsIDs,
+  };
 };

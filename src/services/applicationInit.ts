@@ -2,7 +2,6 @@ import { useGoogleStore } from '../stores/google';
 import { router } from '../router';
 import { getSpreadsheetStatus } from './spreadsheet';
 import { useFinanceStore } from '../stores/finances';
-import { syncTransactions } from './transactions';
 
 export const initializeUserSession = async (token: string) => {
   const googleStore = useGoogleStore();
@@ -21,8 +20,11 @@ export const initializeUserSession = async (token: string) => {
     if (spreadsheetStatus === 'draft') {
       router.push({ name: 'settings' });
     } else if (spreadsheetStatus === 'active') {
-      await useFinanceStore().getSettings(spreadsheetId);
-      await syncTransactions();
+      const financeStore = useFinanceStore();
+
+      await financeStore.getSettings(spreadsheetId);
+      await financeStore.getTransactions(spreadsheetId);
+      await financeStore.syncLocalTransactions(spreadsheetId);
 
       router.push({ name: 'main' });
     } else {

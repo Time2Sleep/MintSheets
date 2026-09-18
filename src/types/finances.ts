@@ -12,6 +12,7 @@ export type Transaction = {
   category: string;
   date: string;
   comment?: string;
+  pending?: boolean;
 };
 
 export type TransactionFormData = {

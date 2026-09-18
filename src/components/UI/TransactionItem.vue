@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
-import { useFinanceStore } from '../../stores/finances';
 import { TransactionTypes, type Transaction } from '../../types/finances';
-
-const financeStore = useFinanceStore();
-const { pendingTransactions } = storeToRefs(financeStore);
 
 defineProps<{
   title: string;
@@ -17,10 +12,10 @@ defineProps<{
   <h2 class="text-xl pb-3">{{ title }}</h2>
 
   <div
-    v-for="{ id, amount, comment, category, type } in data"
+    v-for="{ id, amount, comment, category, type, pending } in data"
     :key="id"
     class="flex justify-between items-center pb-1"
-    :class="{ 'animate-pulse': pendingTransactions.includes(id) }"
+    :class="{ 'animate-pulse': pending }"
   >
     <div>
       <div>{{ comment }}</div>
