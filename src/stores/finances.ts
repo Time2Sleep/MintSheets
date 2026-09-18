@@ -112,7 +112,9 @@ export const useFinanceStore = defineStore(
     };
 
     const syncLocalTransactions = async (spreadsheetId: string) => {
-      const { syncedIds, unsyncedIds } = await syncTransactions(pendingTransactions.value, spreadsheetId);
+      await getTransactions(spreadsheetId);
+
+      const { syncedIds, unsyncedIds } = await syncTransactions(transactions.value, pendingTransactions.value);
 
       if (unsyncedIds.length) console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
 

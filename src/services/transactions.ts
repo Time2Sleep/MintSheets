@@ -91,20 +91,18 @@ export const getTransactionsFromSpreadsheet = async (spreadsheetId: string): Pro
 };
 
 export const syncTransactions = async (
-  transactionsToSync: Transaction[],
-  spreadsheetId: string,
+  remoteTransactions: Transaction[],
+  pendingTransactions: Transaction[],
 ): Promise<{ syncedIds: string[]; unsyncedIds: string[] }> => {
-  const remoteTransactions = await getTransactionsFromSpreadsheet(spreadsheetId);
-
-  if (!transactionsToSync.length) return { syncedIds: [], unsyncedIds: [] };
+  if (!pendingTransactions.length) return { syncedIds: [], unsyncedIds: [] };
 
   const remoteTransactionsIDs = new Set(remoteTransactions.map(({ id }) => id));
 
-  const transactionsToResend = transactionsToSync.filter(({ id }) => !remoteTransactionsIDs.has(id));
+  const transactionsToResend = pendingTransactions.filter(({ id }) => !remoteTransactionsIDs.has(id));
 
   if (!transactionsToResend.length) {
     return {
-      syncedIds: transactionsToSync.map(({ id }) => id),
+      syncedIds: pendingTransactions.map(({ id }) => id),
       unsyncedIds: [],
     };
   }

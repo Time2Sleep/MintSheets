@@ -23,7 +23,6 @@ export const initializeUserSession = async (token: string) => {
       const financeStore = useFinanceStore();
 
       await financeStore.getSettings(spreadsheetId);
-      await financeStore.getTransactions(spreadsheetId);
       await financeStore.syncLocalTransactions(spreadsheetId);
 
       router.push({ name: 'main' });
