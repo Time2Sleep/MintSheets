@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { useFinanceStore } from '../stores/finances';
 import TransactionItem from './UI/TransactionItem.vue';
 import WrapperContainer from './UI/WrapperContainer.vue';
 import { onMounted, computed, ref } from 'vue';
+import { useCurrentFinanceStore } from '../stores/financeStoreRegistry';
 
-const financeStore = useFinanceStore();
+const financeStore = useCurrentFinanceStore();
 const { allTransactionsGrouped, currency } = storeToRefs(financeStore);
 
 const props = defineProps<{

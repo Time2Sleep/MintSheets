@@ -5,12 +5,12 @@ import BaseInput from './UI/BaseInput.vue';
 import BaseSelect from './UI/BaseSelect.vue';
 import { TransactionTypes, type TransactionFormData } from '../types/finances';
 import { getTodayDateFormatted } from '../utils/date';
-import { useFinanceStore } from '../stores/finances';
 import { storeToRefs } from 'pinia';
 import { refreshGoogleToken } from '../services/googleAuth';
 import { useGoogleStore } from '../stores/google';
+import { useCurrentFinanceStore } from '../stores/financeStoreRegistry';
 
-const financeStore = useFinanceStore();
+const financeStore = useCurrentFinanceStore();
 const { spendingCategories, incomeCategories } = storeToRefs(financeStore);
 
 const googleStore = useGoogleStore();

@@ -8,10 +8,10 @@ import BaseInput from '../UI/BaseInput.vue';
 import BaseSelect from '../UI/BaseSelect.vue';
 import WrapperContainer from '../UI/WrapperContainer.vue';
 import EditableList from '../blocks/EditableList.vue';
-import { useFinanceStore } from '../../stores/finances';
 import { storeToRefs } from 'pinia';
+import { useCurrentFinanceStore } from '../../stores/financeStoreRegistry';
 
-const financeStore = useFinanceStore();
+const financeStore = useCurrentFinanceStore();
 const { spendingCategories, incomeCategories, currency } = storeToRefs(financeStore);
 const { saveSettings } = financeStore;
 

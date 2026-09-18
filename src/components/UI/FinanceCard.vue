@@ -2,11 +2,7 @@
 import { computed } from 'vue';
 import ProgressBar from './ProgressBar.vue';
 import WrapperContainer from './WrapperContainer.vue';
-import { useFinanceStore } from '../../stores/finances';
-import { storeToRefs } from 'pinia';
-
-const financeStore = useFinanceStore();
-const { currency } = storeToRefs(financeStore);
+import type { Currency } from '../../constants/currencies';
 
 const props = withDefaults(
   defineProps<{
@@ -14,6 +10,7 @@ const props = withDefaults(
     title: string;
     barColorClass: string;
     maxLimit?: number;
+    currency: Currency;
   }>(),
   {
     maxLimit: 0,

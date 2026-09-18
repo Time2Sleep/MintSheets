@@ -97,7 +97,7 @@ export const syncTransactions = async (
   if (!pendingTransactions.length) return { syncedIds: [], unsyncedIds: [] };
 
   const remoteTransactionsIDs = new Set(remoteTransactions.map(({ id }) => id));
-
+  const alreadySyncedIds = pendingTransactions.filter(({ id }) => remoteTransactionsIDs.has(id)).map(({ id }) => id);
   const transactionsToResend = pendingTransactions.filter(({ id }) => !remoteTransactionsIDs.has(id));
 
   if (!transactionsToResend.length) {
@@ -111,7 +111,7 @@ export const syncTransactions = async (
   const transactionsIDs = transactionsToResend.map(({ id }) => id);
 
   return {
-    syncedIds: isSaved ? transactionsIDs : [],
+    syncedIds: isSaved ? [...alreadySyncedIds, ...transactionsIDs] : alreadySyncedIds,
     unsyncedIds: isSaved ? [] : transactionsIDs,
   };
 };

@@ -18,147 +18,148 @@ import { fetchSettingsFromSpreadsheet, saveSettingsToSpreadsheet } from '../serv
 import { useGoogleStore } from './google';
 import { getCurrencyByCode } from '../utils/currency';
 
-export const useFinanceStore = defineStore(
-  'finances',
-  () => {
-    const initialBalance = ref<number>(0);
-    const transactions = ref<Transaction[]>([]);
-    const pendingTransactions = ref<Transaction[]>([]);
-    const spendingCategories = ref<string[]>([]);
-    const incomeCategories = ref<string[]>([]);
-    const currency = ref<Currency>(CURRENCIES[0]);
+export const createFinanceStore = (spreadsheetId: string) =>
+  defineStore(
+    `finance_${spreadsheetId}`,
+    () => {
+      const initialBalance = ref<number>(0);
+      const transactions = ref<Transaction[]>([]);
+      const pendingTransactions = ref<Transaction[]>([]);
+      const spendingCategories = ref<string[]>([]);
+      const incomeCategories = ref<string[]>([]);
+      const currency = ref<Currency>(CURRENCIES[0]);
 
-    const addTransaction = async (transaction: TransactionFormData) => {
-      const transactionData = formDataToTransaction(transaction);
+      const addTransaction = async (transaction: TransactionFormData) => {
+        const transactionData = formDataToTransaction(transaction);
 
-      if (!transactionData) return;
+        if (!transactionData) return;
 
-      const transactionId = crypto.randomUUID();
-      const transactionToPush = { ...transactionData, id: transactionId };
-      pendingTransactions.value.unshift({ ...transactionToPush, pending: true });
+        const transactionId = crypto.randomUUID();
+        const transactionToPush = { ...transactionData, id: transactionId };
+        pendingTransactions.value.unshift({ ...transactionToPush, pending: true });
 
-      const result = await saveTransactionsToSpreadsheet([transactionToPush]);
+        const result = await saveTransactionsToSpreadsheet([transactionToPush]);
 
-      if (result) _setTransactionsConfirmed([transactionId]);
-    };
+        if (result) _setTransactionsConfirmed([transactionId]);
+      };
 
-    const monthIncome = computed<number>(() => {
-      return transactions.value
-        .filter((transaction) => transaction.type === TransactionTypes.INCOME && isCurrentMonth(transaction.date))
-        .reduce((total, transaction) => total + transaction.amount, 0);
-    });
+      const monthIncome = computed<number>(() => {
+        return transactions.value
+          .filter((transaction) => transaction.type === TransactionTypes.INCOME && isCurrentMonth(transaction.date))
+          .reduce((total, transaction) => total + transaction.amount, 0);
+      });
 
-    const monthSpending = computed<number>(() => {
-      return transactions.value
-        .filter((transaction) => transaction.type === TransactionTypes.SPENDING && isCurrentMonth(transaction.date))
-        .reduce((total, transaction) => total + transaction.amount, 0);
-    });
+      const monthSpending = computed<number>(() => {
+        return transactions.value
+          .filter((transaction) => transaction.type === TransactionTypes.SPENDING && isCurrentMonth(transaction.date))
+          .reduce((total, transaction) => total + transaction.amount, 0);
+      });
 
-    const allTransactionsSorted = computed<Transaction[]>(() => {
-      return [...pendingTransactions.value, ...transactions.value].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      );
-    });
+      const allTransactionsSorted = computed<Transaction[]>(() => {
+        return [...pendingTransactions.value, ...transactions.value].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+      });
 
-    const groupTransactions = (list: Transaction[]): Record<string, Transaction[]> => {
-      return list.reduce(
-        (acc, cur) => {
-          const date = dateToHumanReadable(cur.date);
-          if (!acc[date]) {
-            acc[date] = [];
-          }
-          acc[date].push(cur);
-          return acc;
-        },
-        {} as Record<string, Transaction[]>,
-      );
-    };
+      const groupTransactions = (list: Transaction[]): Record<string, Transaction[]> => {
+        return list.reduce(
+          (acc, cur) => {
+            const date = dateToHumanReadable(cur.date);
+            if (!acc[date]) {
+              acc[date] = [];
+            }
+            acc[date].push(cur);
+            return acc;
+          },
+          {} as Record<string, Transaction[]>,
+        );
+      };
 
-    const allTransactionsGrouped = computed(() => {
-      return groupTransactions(allTransactionsSorted.value);
-    });
+      const allTransactionsGrouped = computed(() => {
+        return groupTransactions(allTransactionsSorted.value);
+      });
 
-    const getSettings = async (spreadsheetId: string) => {
-      const settings = await fetchSettingsFromSpreadsheet(spreadsheetId);
+      const getSettings = async () => {
+        const settings = await fetchSettingsFromSpreadsheet(spreadsheetId);
 
-      if (!settings) return;
+        if (!settings) return;
 
-      initialBalance.value = settings.balance;
-      currency.value = settings.currency;
-      spendingCategories.value = settings.spendingCategories;
-      incomeCategories.value = settings.incomeCategories;
-    };
-
-    const saveSettings = async (settings: SpreadsheetSettingsFormData): Promise<boolean> => {
-      const googleStore = useGoogleStore();
-
-      if (!googleStore.spreadsheetId || googleStore.sheetsId.total == null) {
-        return false;
-      }
-
-      try {
-        await saveSettingsToSpreadsheet(googleStore.spreadsheetId, googleStore.sheetsId.total, settings);
-
-        initialBalance.value = Number(settings.balance);
-        currency.value = getCurrencyByCode(settings.currency) || CURRENCIES[0];
+        initialBalance.value = settings.balance;
+        currency.value = settings.currency;
         spendingCategories.value = settings.spendingCategories;
         incomeCategories.value = settings.incomeCategories;
+      };
 
-        return true;
-      } catch (error) {
-        console.warn('[Finance Store] Failed to save settings:', error);
-        return false;
-      }
-    };
+      const saveSettings = async (settings: SpreadsheetSettingsFormData): Promise<boolean> => {
+        const googleStore = useGoogleStore();
 
-    const syncLocalTransactions = async (spreadsheetId: string) => {
-      await getTransactions(spreadsheetId);
+        if (!googleStore.spreadsheetId || googleStore.sheetsId.total == null) {
+          return false;
+        }
 
-      const { syncedIds, unsyncedIds } = await syncTransactions(transactions.value, pendingTransactions.value);
+        try {
+          await saveSettingsToSpreadsheet(googleStore.spreadsheetId, googleStore.sheetsId.total, settings);
 
-      if (unsyncedIds.length) console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
+          initialBalance.value = Number(settings.balance);
+          currency.value = getCurrencyByCode(settings.currency) || CURRENCIES[0];
+          spendingCategories.value = settings.spendingCategories;
+          incomeCategories.value = settings.incomeCategories;
 
-      _setTransactionsConfirmed(syncedIds);
-    };
+          return true;
+        } catch (error) {
+          console.warn('[Finance Store] Failed to save settings:', error);
+          return false;
+        }
+      };
 
-    const getTransactions = async (spreadsheetId: string) => {
-      try {
-        transactions.value = await getTransactionsFromSpreadsheet(spreadsheetId);
-      } catch (error) {
-        console.warn('[Finance Store]: Failed to recieve transactions.', error);
-      }
-    };
+      const syncLocalTransactions = async () => {
+        await getTransactions();
 
-    const _setTransactionsConfirmed = (transactionIDs: string[]) => {
-      if (!transactionIDs.length) return;
+        const { syncedIds, unsyncedIds } = await syncTransactions(transactions.value, pendingTransactions.value);
 
-      const confirmedTransactions = pendingTransactions.value
-        .filter(({ id }) => transactionIDs.includes(id))
-        .map((transaction) => ({ ...transaction, pending: false }));
+        if (unsyncedIds.length) console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
 
-      pendingTransactions.value = pendingTransactions.value.filter(({ id }) => !transactionIDs.includes(id));
+        _setTransactionsConfirmed(syncedIds);
+      };
 
-      transactions.value.unshift(...confirmedTransactions);
-    };
+      const getTransactions = async () => {
+        try {
+          transactions.value = await getTransactionsFromSpreadsheet(spreadsheetId);
+        } catch (error) {
+          console.warn('[Finance Store]: Failed to recieve transactions.', error);
+        }
+      };
 
-    return {
-      initialBalance,
-      spendingCategories,
-      incomeCategories,
-      transactions,
-      monthIncome,
-      monthSpending,
-      addTransaction,
-      allTransactionsGrouped,
-      currency,
-      pendingTransactions,
-      getSettings,
-      saveSettings,
-      syncLocalTransactions,
-      getTransactions,
-    };
-  },
-  {
-    persist: true,
-  },
-);
+      const _setTransactionsConfirmed = (transactionIDs: string[]) => {
+        if (!transactionIDs.length) return;
+
+        const confirmedTransactions = pendingTransactions.value
+          .filter(({ id }) => transactionIDs.includes(id))
+          .map((transaction) => ({ ...transaction, pending: false }));
+
+        pendingTransactions.value = pendingTransactions.value.filter(({ id }) => !transactionIDs.includes(id));
+
+        transactions.value.unshift(...confirmedTransactions);
+      };
+
+      return {
+        initialBalance,
+        spendingCategories,
+        incomeCategories,
+        transactions,
+        monthIncome,
+        monthSpending,
+        addTransaction,
+        allTransactionsGrouped,
+        currency,
+        pendingTransactions,
+        getSettings,
+        saveSettings,
+        syncLocalTransactions,
+        getTransactions,
+      };
+    },
+    {
+      persist: true,
+    },
+  );
