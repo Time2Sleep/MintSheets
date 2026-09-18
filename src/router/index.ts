@@ -16,7 +16,7 @@ router.beforeEach((to) => {
 
   const offline = isOffline.value && mintsWasConnected.value;
 
-  if (isAuthRequired && !isAuthenticated && !spreadsheetId && !offline) {
+  if ((isAuthRequired && !isAuthenticated && !offline) || !spreadsheetId) {
     return { name: 'auth' };
   } else if (to.name === 'auth' && isAuthenticated) {
     return { name: 'main' };
