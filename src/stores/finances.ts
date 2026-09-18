@@ -113,13 +113,16 @@ export const createFinanceStore = (spreadsheetId: string) =>
       };
 
       const syncLocalTransactions = async () => {
-        await getTransactions();
+        try {
+          await getTransactions();
+          const { syncedIds, unsyncedIds } = await syncTransactions(transactions.value, pendingTransactions.value);
 
-        const { syncedIds, unsyncedIds } = await syncTransactions(transactions.value, pendingTransactions.value);
+          if (unsyncedIds.length) console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
 
-        if (unsyncedIds.length) console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
-
-        _setTransactionsConfirmed(syncedIds);
+          _setTransactionsConfirmed(syncedIds);
+        } catch (error) {
+          console.warn('[Finance Store]: Failed to sync transactions.', error);
+        }
       };
 
       const getTransactions = async () => {
@@ -127,14 +130,18 @@ export const createFinanceStore = (spreadsheetId: string) =>
           transactions.value = await getTransactionsFromSpreadsheet(spreadsheetId);
         } catch (error) {
           console.warn('[Finance Store]: Failed to recieve transactions.', error);
+
+          throw error;
         }
       };
 
       const _setTransactionsConfirmed = (transactionIDs: string[]) => {
         if (!transactionIDs.length) return;
 
+        const existingIds = new Set(transactions.value.map(({ id }) => id));
         const confirmedTransactions = pendingTransactions.value
           .filter(({ id }) => transactionIDs.includes(id))
+          .filter(({ id }) => !existingIds.has(id))
           .map((transaction) => ({ ...transaction, pending: false }));
 
         pendingTransactions.value = pendingTransactions.value.filter(({ id }) => !transactionIDs.includes(id));
