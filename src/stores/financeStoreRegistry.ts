@@ -26,5 +26,8 @@ export const getFinanceStore = (context: SpreadsheetContext) => {
     financeStores.set(context.spreadsheetId, useFinanceStore);
   }
 
-  return useFinanceStore();
+  const store = useFinanceStore();
+  store.updateContext(context);
+
+  return store;
 };

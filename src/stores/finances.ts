@@ -18,16 +18,21 @@ import { fetchSettingsFromSpreadsheet, saveSettingsToSpreadsheet } from '../serv
 import { CURRENCIES, type Currency } from '../constants/currencies';
 import { getCurrencyByCode } from '../utils/currency';
 
-export const createFinanceStore = (context: SpreadsheetContext) =>
+export const createFinanceStore = (initialContext: SpreadsheetContext) =>
   defineStore(
-    `finance_${context.spreadsheetId}`,
+    `finance_${initialContext.spreadsheetId}`,
     () => {
+      let context = initialContext;
       const initialBalance = ref<number>(0);
       const transactions = ref<Transaction[]>([]);
       const pendingTransactions = ref<Transaction[]>([]);
       const spendingCategories = ref<string[]>([]);
       const incomeCategories = ref<string[]>([]);
       const currency = ref<Currency>(CURRENCIES[0]);
+
+      const updateContext = (newContext: SpreadsheetContext) => {
+        context = newContext;
+      };
 
       const addTransaction = async (transaction: TransactionFormData) => {
         const transactionData = formDataToTransaction(transaction);
@@ -165,6 +170,7 @@ export const createFinanceStore = (context: SpreadsheetContext) =>
         saveSettings,
         syncLocalTransactions,
         getTransactions,
+        updateContext,
       };
     },
     {
