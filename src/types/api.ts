@@ -66,3 +66,13 @@ export interface SheetsRowData {
 }
 
 export type SpreadsheetValue = string | number | boolean | null;
+
+export interface SheetsIDs {
+  total: number;
+  transactions: number;
+}
+
+export interface SpreadsheetContext {
+  spreadsheetId: string;
+  sheets: SheetsIDs;
+}
