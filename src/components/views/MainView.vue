@@ -2,17 +2,17 @@
 import TransactionForm from '../TransactionForm.vue';
 import FinanceCard from '../UI/FinanceCard.vue';
 import WrapperContainer from '../UI/WrapperContainer.vue';
-import { useFinanceStore } from '../../stores/finances';
 import { storeToRefs } from 'pinia';
 import TransactionsList from '../TransactionsList.vue';
 import { onMounted, ref } from 'vue';
 import { useGoogleStore } from '../../stores/google';
-
-const financeStore = useFinanceStore();
-const { monthSpending, monthIncome } = storeToRefs(financeStore);
+import { useCurrentFinanceStore } from '../../stores/financeStoreRegistry';
 
 const googleStore = useGoogleStore();
 const { isOffline } = storeToRefs(googleStore);
+
+const financeStore = useCurrentFinanceStore();
+const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
 
 const content = ref<HTMLElement | null>(null);
 
@@ -34,9 +34,21 @@ onMounted(() => {
     </div>
 
     <RouterLink to="analytics" class="flex gap-4 mb-4">
-      <FinanceCard class="flex-1" title="Spending" :value="monthSpending" bar-color-class="bg-red-primary" />
+      <FinanceCard
+        class="flex-1"
+        title="Spending"
+        :value="monthSpending"
+        bar-color-class="bg-red-primary"
+        :currency="currency"
+      />
 
-      <FinanceCard class="flex-1" title="Income" :value="monthIncome" bar-color-class="bg-mint-primary" />
+      <FinanceCard
+        class="flex-1"
+        title="Income"
+        :value="monthIncome"
+        bar-color-class="bg-mint-primary"
+        :currency="currency"
+      />
     </RouterLink>
 
     <WrapperContainer
