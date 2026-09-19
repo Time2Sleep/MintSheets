@@ -1,13 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { findSpreadsheetById, findSpreadsheetByTitle } from '../api/sheets';
 import { router } from '../router';
-import {
-  getSpreadsheetStatus,
-  getSpreadsheetTabsIDs,
-  initSpreadsheet,
-  setupSpreadsheet,
-} from '../services/spreadsheet';
+import { findOrCreateSpreadsheet, getSpreadsheetTabsIDs } from '../services/spreadsheet';
+import type { SheetsIDs } from '../types/api';
 import { setAuthorizationHeader } from '../api';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
@@ -17,7 +12,7 @@ export const useGoogleStore = defineStore(
   () => {
     const googleToken = ref<string | null>(null);
     const spreadsheetId = ref<string | null>(null);
-    const sheetsId = ref<Record<string, number>>({});
+    const sheetsId = ref<SheetsIDs | null>(null);
 
     const isAuthError = ref<boolean>(false);
     const isOffline = ref<boolean>(false);
@@ -28,8 +23,6 @@ export const useGoogleStore = defineStore(
     const setGoogleToken = (token: string | null) => {
       googleToken.value = token;
       mintsWasConnected.value = true;
-
-      setAuthorizationHeader(token);
 
       if (logoutTimer) {
         clearTimeout(logoutTimer);
@@ -46,50 +39,20 @@ export const useGoogleStore = defineStore(
 
       googleToken.value = null;
       spreadsheetId.value = null;
-      sheetsId.value = {};
+      sheetsId.value = null;
       mintsWasConnected.value = false;
       setAuthorizationHeader(null);
     };
 
-    const findOrCreateSpreadsheet = async (): Promise<string> => {
+    const connectSpreadsheet = async (): Promise<string> => {
       connecting.value = true;
 
       try {
-        if (spreadsheetId.value) {
-          const foundById = await findSpreadsheetById(spreadsheetId.value);
-
-          if (foundById) {
-            const status = await getSpreadsheetStatus(spreadsheetId.value);
-            if (status) return spreadsheetId.value;
-          }
-        }
-
         const title = 'MintSheets_financial_spreadsheet_MVP';
-        const id = await findSpreadsheetByTitle(title);
-        if (id) {
-          const status = await getSpreadsheetStatus(id);
 
-          if (status) {
-            spreadsheetId.value = id;
-            return id;
-          }
+        spreadsheetId.value = await findOrCreateSpreadsheet(spreadsheetId.value, title);
 
-          const isSetup = await setupSpreadsheet(id);
-          if (isSetup) {
-            spreadsheetId.value = id;
-            return id;
-          }
-        }
-
-        const newSpreadsheetId = await initSpreadsheet(title);
-
-        if (!newSpreadsheetId) {
-          isAuthError.value = true;
-          throw new Error('Failed to initialize spreadsheet');
-        }
-
-        spreadsheetId.value = newSpreadsheetId;
-        return newSpreadsheetId;
+        return spreadsheetId.value;
       } finally {
         connecting.value = false;
       }
@@ -107,6 +70,8 @@ export const useGoogleStore = defineStore(
       if (!spreadsheetId.value) throw new Error('Spreadsheet ID is missing!');
 
       sheetsId.value = await getSpreadsheetTabsIDs(spreadsheetId.value);
+
+      return sheetsId.value;
     };
 
     return {
@@ -116,7 +81,7 @@ export const useGoogleStore = defineStore(
       logoutGoogle,
       isAuthError,
       isOffline,
-      findOrCreateSpreadsheet,
+      connectSpreadsheet,
       mintsWasConnected,
       turnOfflineModeOn,
       spreadsheetId,
