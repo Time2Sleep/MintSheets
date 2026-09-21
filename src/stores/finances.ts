@@ -6,6 +6,7 @@ import {
   type Transaction,
   type TransactionFormData,
 } from '../types/finances';
+import type { SpreadsheetContext } from '../types/api';
 import { dateToHumanReadable, isCurrentMonth } from '../utils/date';
 import {
   formDataToTransaction,
@@ -13,21 +14,25 @@ import {
   saveTransactionsToSpreadsheet,
   syncTransactions,
 } from '../services/transactions';
-import { CURRENCIES, type Currency } from '../constants/currencies';
 import { fetchSettingsFromSpreadsheet, saveSettingsToSpreadsheet } from '../services/settings';
-import { useGoogleStore } from './google';
+import { CURRENCIES, type Currency } from '../constants/currencies';
 import { getCurrencyByCode } from '../utils/currency';
 
-export const createFinanceStore = (spreadsheetId: string) =>
+export const createFinanceStore = (initialContext: SpreadsheetContext) =>
   defineStore(
-    `finance_${spreadsheetId}`,
+    `finance_${initialContext.spreadsheetId}`,
     () => {
+      let context = initialContext;
       const initialBalance = ref<number>(0);
       const transactions = ref<Transaction[]>([]);
       const pendingTransactions = ref<Transaction[]>([]);
       const spendingCategories = ref<string[]>([]);
       const incomeCategories = ref<string[]>([]);
       const currency = ref<Currency>(CURRENCIES[0]);
+
+      const updateContext = (newContext: SpreadsheetContext) => {
+        context = newContext;
+      };
 
       const addTransaction = async (transaction: TransactionFormData) => {
         const transactionData = formDataToTransaction(transaction);
@@ -38,9 +43,12 @@ export const createFinanceStore = (spreadsheetId: string) =>
         const transactionToPush = { ...transactionData, id: transactionId };
         pendingTransactions.value.unshift({ ...transactionToPush, pending: true });
 
-        const result = await saveTransactionsToSpreadsheet([transactionToPush]);
-
-        if (result) _setTransactionsConfirmed([transactionId]);
+        try {
+          await saveTransactionsToSpreadsheet(context, [transactionToPush]);
+          _setTransactionsConfirmed([transactionId]);
+        } catch (error) {
+          console.warn('[Finance Store] failed to send transaction to spreadsheet.', error);
+        }
       };
 
       const monthIncome = computed<number>(() => {
@@ -80,7 +88,7 @@ export const createFinanceStore = (spreadsheetId: string) =>
       });
 
       const getSettings = async () => {
-        const settings = await fetchSettingsFromSpreadsheet(spreadsheetId);
+        const settings = await fetchSettingsFromSpreadsheet(context);
 
         if (!settings) return;
 
@@ -91,14 +99,8 @@ export const createFinanceStore = (spreadsheetId: string) =>
       };
 
       const saveSettings = async (settings: SpreadsheetSettingsFormData): Promise<boolean> => {
-        const googleStore = useGoogleStore();
-
-        if (!googleStore.spreadsheetId || googleStore.sheetsId.total == null) {
-          return false;
-        }
-
         try {
-          await saveSettingsToSpreadsheet(googleStore.spreadsheetId, googleStore.sheetsId.total, settings);
+          await saveSettingsToSpreadsheet(context, settings);
 
           initialBalance.value = Number(settings.balance);
           currency.value = getCurrencyByCode(settings.currency) || CURRENCIES[0];
@@ -115,7 +117,11 @@ export const createFinanceStore = (spreadsheetId: string) =>
       const syncLocalTransactions = async () => {
         try {
           await getTransactions();
-          const { syncedIds, unsyncedIds } = await syncTransactions(transactions.value, pendingTransactions.value);
+          const { syncedIds, unsyncedIds } = await syncTransactions(
+            context,
+            transactions.value,
+            pendingTransactions.value,
+          );
 
           if (unsyncedIds.length) console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
 
@@ -127,7 +133,7 @@ export const createFinanceStore = (spreadsheetId: string) =>
 
       const getTransactions = async () => {
         try {
-          transactions.value = await getTransactionsFromSpreadsheet(spreadsheetId);
+          transactions.value = await getTransactionsFromSpreadsheet(context);
         } catch (error) {
           console.warn('[Finance Store]: Failed to recieve transactions.', error);
 
@@ -164,6 +170,7 @@ export const createFinanceStore = (spreadsheetId: string) =>
         saveSettings,
         syncLocalTransactions,
         getTransactions,
+        updateContext,
       };
     },
     {

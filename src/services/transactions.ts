@@ -1,6 +1,5 @@
 import { batchUpdateSpreadsheet, getSpreadsheetValues } from '../api/sheets';
-import { useGoogleStore } from '../stores/google';
-import type { SheetsRowData } from '../types/api';
+import type { SheetsRowData, SpreadsheetContext } from '../types/api';
 import { type Transaction, type TransactionFormData, TransactionTypes } from '../types/finances';
 import { sheetDateToStringDate, stringDateToSheetDate } from '../utils/date';
 import { buildInsertRowRequest, buildUpdateCellsValueRequest } from '../utils/requestsFactory';
@@ -63,34 +62,29 @@ export const formDataToTransaction = ({ amount, ...rest }: TransactionFormData):
   return { ...rest, amount: parsedAmount };
 };
 
-export const saveTransactionsToSpreadsheet = async (transactions: Transaction[]): Promise<boolean> => {
-  try {
-    const googleStore = useGoogleStore();
-    if (!googleStore.spreadsheetId) throw new Error('Spreadsheet ID is not set');
-    if (googleStore.sheetsId.transactions == null) throw new Error('Transactions sheet ID is not set');
+export const saveTransactionsToSpreadsheet = async (
+  context: SpreadsheetContext,
+  transactions: Transaction[],
+): Promise<void> => {
+  const rows = transactions.map(transactionToRowData);
+  const response = await batchUpdateSpreadsheet(context.spreadsheetId, [
+    buildInsertRowRequest(context.sheets.transactions, 1, transactions.length + 1),
+    buildUpdateCellsValueRequest(context.sheets.transactions, 1, 0, rows),
+  ]);
 
-    const rows = transactions.map(transactionToRowData);
-    const response = await batchUpdateSpreadsheet(googleStore.spreadsheetId, [
-      buildInsertRowRequest(googleStore.sheetsId.transactions, 1, transactions.length + 1),
-      buildUpdateCellsValueRequest(googleStore.sheetsId.transactions, 1, 0, rows),
-    ]);
+  const hasErrors = response.replies.some((reply) => Object.keys(reply).length > 0);
 
-    const errorsCount = response.replies.reduce((acc, obj) => acc + Object.keys(obj).length, 0);
-
-    return errorsCount === 0;
-  } catch (error) {
-    console.warn('Failed to save transactions:', error);
-    return false;
-  }
+  if (hasErrors) throw new Error('[Transactions Service] Failed to save transactions.');
 };
 
-export const getTransactionsFromSpreadsheet = async (spreadsheetId: string): Promise<Transaction[]> => {
-  const rows = await getSpreadsheetValues<string | number>(spreadsheetId, 'Transactions!A2:F');
+export const getTransactionsFromSpreadsheet = async (context: SpreadsheetContext): Promise<Transaction[]> => {
+  const rows = await getSpreadsheetValues<string | number>(context.spreadsheetId, 'Transactions!A2:F');
 
   return rows.map(rowToTransaction).filter((transaction): transaction is Transaction => transaction !== null);
 };
 
 export const syncTransactions = async (
+  context: SpreadsheetContext,
   remoteTransactions: Transaction[],
   pendingTransactions: Transaction[],
 ): Promise<{ syncedIds: string[]; unsyncedIds: string[] }> => {
@@ -107,11 +101,19 @@ export const syncTransactions = async (
     };
   }
 
-  const isSaved = await saveTransactionsToSpreadsheet(transactionsToResend);
   const transactionsIDs = transactionsToResend.map(({ id }) => id);
 
-  return {
-    syncedIds: isSaved ? [...alreadySyncedIds, ...transactionsIDs] : alreadySyncedIds,
-    unsyncedIds: isSaved ? [] : transactionsIDs,
-  };
+  try {
+    await saveTransactionsToSpreadsheet(context, transactionsToResend);
+
+    return {
+      syncedIds: [...alreadySyncedIds, ...transactionsIDs],
+      unsyncedIds: [],
+    };
+  } catch {
+    return {
+      syncedIds: alreadySyncedIds,
+      unsyncedIds: transactionsIDs,
+    };
+  }
 };
