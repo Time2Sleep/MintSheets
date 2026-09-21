@@ -3,9 +3,13 @@ import { storeToRefs } from 'pinia';
 import BaseButton from '../UI/BaseButton.vue';
 import { loginWithGoogle, refreshGoogleToken } from '../../services/googleAuth';
 import { useGoogleStore } from '../../stores/google';
+import { computed } from 'vue';
+import { SessionStatus } from '../../types/auth';
 
 const googleStore = useGoogleStore();
-const { isAuthError, mintsWasConnected, connecting } = storeToRefs(googleStore);
+const { mintsWasConnected, sessionStatus } = storeToRefs(googleStore);
+
+const connecting = computed(() => sessionStatus.value === SessionStatus.INITIALIZING);
 </script>
 
 <template>
@@ -16,6 +20,8 @@ const { isAuthError, mintsWasConnected, connecting } = storeToRefs(googleStore);
     <BaseButton v-else-if="!mintsWasConnected" @click="loginWithGoogle"> Connect Google Sheets </BaseButton>
     <BaseButton v-else @click="refreshGoogleToken"> Continue </BaseButton>
 
-    <div v-if="isAuthError" class="text-red-primary">Sorry, something went wrong there. Try again.</div>
+    <div v-if="sessionStatus === SessionStatus.ERROR" class="text-red-primary">
+      Sorry, something went wrong there. Try again.
+    </div>
   </div>
 </template>

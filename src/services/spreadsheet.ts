@@ -6,7 +6,7 @@ import {
   findSpreadsheetById,
   findSpreadsheetByTitle,
 } from '../api/sheets';
-import type { SheetsIDs, SheetsRowData } from '../types/api';
+import type { SheetsIDs, SheetsRowData, SpreadsheetStatus } from '../types/spreadsheet';
 import {
   buildRenameSheetRequest,
   buildAddSheetRequest,
@@ -101,8 +101,8 @@ export const getSpreadsheetTabsIDs = async (id: string): Promise<SheetsIDs> => {
   };
 };
 
-export const getSpreadsheetStatus = async (id: string): Promise<string | null> => {
-  const values = await getSpreadsheetValues<string | null>(id, 'Total!B1:B1');
+export const getSpreadsheetStatus = async (id: string): Promise<SpreadsheetStatus> => {
+  const values = await getSpreadsheetValues<SpreadsheetStatus>(id, 'Total!B1:B1');
 
   return values[0]?.[0];
 };

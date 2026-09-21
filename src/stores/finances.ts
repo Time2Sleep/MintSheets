@@ -6,7 +6,7 @@ import {
   type Transaction,
   type TransactionFormData,
 } from '../types/finances';
-import type { SpreadsheetContext } from '../types/api';
+import type { SpreadsheetContext } from '../types/spreadsheet';
 import { dateToHumanReadable, isCurrentMonth } from '../utils/date';
 import {
   formDataToTransaction,

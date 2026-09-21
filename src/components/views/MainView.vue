@@ -7,9 +7,10 @@ import TransactionsList from '../TransactionsList.vue';
 import { onMounted, ref } from 'vue';
 import { useGoogleStore } from '../../stores/google';
 import { useCurrentFinanceStore } from '../../stores/financeStoreRegistry';
+import { SessionStatus } from '../../types/auth';
 
 const googleStore = useGoogleStore();
-const { isOffline } = storeToRefs(googleStore);
+const { sessionStatus } = storeToRefs(googleStore);
 
 const financeStore = useCurrentFinanceStore();
 const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
@@ -30,7 +31,9 @@ onMounted(() => {
     <div class="flex justify-between items-center pb-4 pt-6">
       <h1 class="text-2xl">Hello, User!</h1>
 
-      <p v-if="isOffline" class="rounded-xl bg-red-secondary text-red-primary px-4">Offline</p>
+      <p v-if="sessionStatus === SessionStatus.OFFLINE" class="rounded-xl bg-red-secondary text-red-primary px-4">
+        Offline
+      </p>
     </div>
 
     <RouterLink to="analytics" class="flex gap-4 mb-4">

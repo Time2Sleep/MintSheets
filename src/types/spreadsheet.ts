@@ -76,3 +76,10 @@ export interface SpreadsheetContext {
   spreadsheetId: string;
   sheets: SheetsIDs;
 }
+
+export const SpreadsheetStatus = {
+  DRAFT: 'draft',
+  ACTIVE: 'active',
+} as const;
+
+export type SpreadsheetStatus = null | (typeof SpreadsheetStatus)[keyof typeof SpreadsheetStatus];
