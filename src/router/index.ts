@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useGoogleStore } from '../stores/google';
 import { storeToRefs } from 'pinia';
 import { routes } from './routes';
+import { SessionStatus } from '../types/auth';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -11,14 +12,14 @@ export const router = createRouter({
 router.beforeEach((to) => {
   const googleStore = useGoogleStore();
   const isAuthRequired = to.meta.requiresAuth;
-  const isAuthenticated = !!googleStore.googleToken;
-  const { isOffline, mintsWasConnected, spreadsheetId } = storeToRefs(googleStore);
+  const { sessionStatus } = storeToRefs(googleStore);
 
-  const offline = isOffline.value && mintsWasConnected.value;
-
-  if ((isAuthRequired && !isAuthenticated && !offline) || !spreadsheetId) {
+  if (
+    isAuthRequired &&
+    !(sessionStatus.value === SessionStatus.READY || sessionStatus.value === SessionStatus.OFFLINE)
+  ) {
     return { name: 'auth' };
-  } else if (to.name === 'auth' && isAuthenticated) {
+  } else if (to.name === 'auth' && sessionStatus.value === SessionStatus.READY) {
     return { name: 'main' };
   }
 

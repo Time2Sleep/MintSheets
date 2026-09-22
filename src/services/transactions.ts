@@ -1,5 +1,5 @@
 import { batchUpdateSpreadsheet, getSpreadsheetValues } from '../api/sheets';
-import type { SheetsRowData, SpreadsheetContext } from '../types/api';
+import type { SheetsRowData, SpreadsheetContext } from '../types/spreadsheet';
 import { type Transaction, type TransactionFormData, TransactionTypes } from '../types/finances';
 import { sheetDateToStringDate, stringDateToSheetDate } from '../utils/date';
 import { buildInsertRowRequest, buildUpdateCellsValueRequest } from '../utils/requestsFactory';

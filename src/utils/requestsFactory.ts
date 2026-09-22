@@ -1,4 +1,4 @@
-import type { SheetsCellData, SheetsRowData } from '../types/api';
+import type { SheetsCellData, SheetsRowData } from '../types/spreadsheet';
 
 export const buildRenameSheetRequest = (sheetId: number, newTitle: string) => ({
   updateSheetProperties: {

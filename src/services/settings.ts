@@ -1,5 +1,5 @@
 import { batchUpdateSpreadsheet, getSpreadsheetValues } from '../api/sheets';
-import type { SheetsRowData, SpreadsheetContext } from '../types/api';
+import type { SheetsRowData, SpreadsheetContext } from '../types/spreadsheet';
 import { buildRow, buildUpdateCellsValueRequest } from '../utils/requestsFactory';
 import { getCurrencyByCode } from '../utils/currency';
 import { CURRENCIES } from '../constants/currencies';

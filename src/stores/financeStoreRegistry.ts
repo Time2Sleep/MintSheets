@@ -1,6 +1,6 @@
 import { useGoogleStore } from './google';
 import { createFinanceStore } from './finances';
-import type { SpreadsheetContext } from '../types/api';
+import type { SpreadsheetContext } from '../types/spreadsheet';
 
 const financeStores = new Map<string, ReturnType<typeof createFinanceStore>>();
 

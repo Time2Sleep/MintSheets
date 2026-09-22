@@ -35,3 +35,13 @@ export interface GoogleAccounts {
 export interface GoogleSDK {
   accounts: GoogleAccounts;
 }
+
+export const SessionStatus = {
+  DISCONNECTED: 'DISCONNECTED',
+  INITIALIZING: 'INITIALIZING',
+  READY: 'READY',
+  OFFLINE: 'OFFLINE',
+  ERROR: 'ERROR',
+} as const;
+
+export type SessionStatus = (typeof SessionStatus)[keyof typeof SessionStatus];

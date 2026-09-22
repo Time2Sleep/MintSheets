@@ -7,7 +7,7 @@ import type {
   GetSheetPropertiesResponse,
   GoogleDriveFilesResponse,
   SpreadsheetValue,
-} from '../types/api';
+} from '../types/spreadsheet';
 
 export const findSpreadsheetByTitle = async (title: string): Promise<string | null> => {
   const escapedTitle = title.replace(/\\/g, '\\\\').replace(/'/g, "\\'");

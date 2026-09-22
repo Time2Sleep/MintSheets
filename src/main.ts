@@ -3,11 +3,9 @@ import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import './style.css';
 import App from './App.vue';
-import { initGoogle } from './services/googleAuth';
 import { router } from './router';
 import { vSwipeDown, vSwipeUp } from './directives/swipe';
-
-initGoogle();
+import { initializeAuth } from './services/application.ts';
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
@@ -18,3 +16,5 @@ app.use(router);
 app.directive('swipe-up', vSwipeUp);
 app.directive('swipe-down', vSwipeDown);
 app.mount('#app');
+
+initializeAuth();
