@@ -10,14 +10,19 @@ import { initializeGoogleAuth, loadGoogleSDK } from './googleAuth';
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
 export const initializeAuth = async () => {
+  const googleStore = useGoogleStore();
+
+  const handleAuthError = (error: Error) => {
+    console.warn('[Auth] Google authentication failed:', error);
+
+    googleStore.setStatus(googleStore.mintsWasConnected ? SessionStatus.OFFLINE : SessionStatus.ERROR);
+  };
+
   try {
     await loadGoogleSDK();
-    initializeGoogleAuth(initializeUserSession);
+    initializeGoogleAuth(initializeUserSession, handleAuthError);
   } catch (error) {
-    console.warn(error);
-
-    const googleStore = useGoogleStore();
-    googleStore.setStatus(SessionStatus.ERROR);
+    handleAuthError(error instanceof Error ? error : new Error(String(error)));
   }
 };
 
@@ -85,4 +90,5 @@ const logout = () => {
   const googleStore = useGoogleStore();
   googleStore.resetValues();
   setAuthorizationHeader(null);
+  router.push({ name: 'auth' });
 };

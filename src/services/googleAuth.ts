@@ -34,7 +34,10 @@ export const loadGoogleSDK = (): Promise<void> => {
   });
 };
 
-export const initializeGoogleAuth = (onTokenReceived: (token: string) => void): void => {
+export const initializeGoogleAuth = (
+  onTokenReceived: (token: string) => void,
+  onError: (error: Error) => void,
+): void => {
   if (!window.google?.accounts?.oauth2) {
     throw new Error('Google SDK is not loaded');
   }
@@ -52,7 +55,7 @@ export const initializeGoogleAuth = (onTokenReceived: (token: string) => void): 
       if (response.access_token) {
         onTokenReceived(response.access_token);
       } else {
-        throw new Error('OAuth Error:' + response.error);
+        onError(new Error('OAuth Error:' + response.error));
       }
     },
   });
