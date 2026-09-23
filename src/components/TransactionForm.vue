@@ -9,6 +9,7 @@ import { storeToRefs } from 'pinia';
 import { refreshGoogleToken } from '../services/googleAuth';
 import { useGoogleStore } from '../stores/google';
 import { useCurrentFinanceStore } from '../stores/financeStoreRegistry';
+import { SessionStatus } from '../types/auth';
 
 const financeStore = useCurrentFinanceStore();
 const { spendingCategories, incomeCategories } = storeToRefs(financeStore);
@@ -43,7 +44,7 @@ const handleSubmit = () => {
   financeStore.addTransaction({ ...form });
   clearForm();
 
-  if (!googleStore.googleToken) {
+  if (googleStore.sessionStatus === SessionStatus.OFFLINE) {
     refreshGoogleToken();
   }
 };

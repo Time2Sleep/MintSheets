@@ -1,22 +1,25 @@
 import { batchUpdateSpreadsheet, getSpreadsheetValues } from '../api/sheets';
-import type { SheetsRowData, SpreadsheetContext } from '../types/spreadsheet';
+import type { RawCellValue, SpreadsheetContext } from '../types/spreadsheet';
 import { type Transaction, type TransactionFormData, TransactionTypes } from '../types/finances';
 import { sheetDateToStringDate, stringDateToSheetDate } from '../utils/date';
 import { buildInsertRowRequest, buildUpdateCellsValueRequest } from '../utils/requestsFactory';
+import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 
-export const transactionToRowData = ({ id, date, type, amount, category, comment }: Transaction): SheetsRowData => ({
-  values: [
-    { userEnteredValue: { stringValue: id } },
-    {
-      userEnteredValue: { numberValue: stringDateToSheetDate(date) },
-      userEnteredFormat: { numberFormat: { type: 'DATE', pattern: 'YYYY-MM-DD' } },
-    },
-    { userEnteredValue: { stringValue: type } },
-    { userEnteredValue: { stringValue: category } },
-    { userEnteredValue: { numberValue: amount } },
-    { userEnteredValue: { stringValue: comment ?? '' } },
-  ],
-});
+export const transactionToRawCellValues = ({
+  id,
+  date,
+  type,
+  amount,
+  category,
+  comment,
+}: Transaction): RawCellValue[] => [
+  id,
+  { value: stringDateToSheetDate(date), format: { date: true } },
+  type,
+  category,
+  amount,
+  comment ?? '',
+];
 
 const isTransactionType = (value: string): value is Transaction['type'] => {
   return Object.values(TransactionTypes).includes(value as Transaction['type']);
@@ -66,10 +69,22 @@ export const saveTransactionsToSpreadsheet = async (
   context: SpreadsheetContext,
   transactions: Transaction[],
 ): Promise<void> => {
-  const rows = transactions.map(transactionToRowData);
+  const rows = transactions.map(transactionToRawCellValues);
+  const START_ROW_INDEX = 1;
+  const START_COLUMN_INDEX = 0;
+
   const response = await batchUpdateSpreadsheet(context.spreadsheetId, [
-    buildInsertRowRequest(context.sheets.transactions, 1, transactions.length + 1),
-    buildUpdateCellsValueRequest(context.sheets.transactions, 1, 0, rows),
+    buildInsertRowRequest(
+      context.sheets[SPREADSHEET_SCHEMA.transactionsTab.key],
+      START_ROW_INDEX,
+      transactions.length + 1,
+    ),
+    buildUpdateCellsValueRequest(
+      context.sheets[SPREADSHEET_SCHEMA.transactionsTab.key],
+      START_ROW_INDEX,
+      START_COLUMN_INDEX,
+      rows,
+    ),
   ]);
 
   const hasErrors = response.replies.some((reply) => Object.keys(reply).length > 0);
@@ -78,7 +93,8 @@ export const saveTransactionsToSpreadsheet = async (
 };
 
 export const getTransactionsFromSpreadsheet = async (context: SpreadsheetContext): Promise<Transaction[]> => {
-  const rows = await getSpreadsheetValues<string | number>(context.spreadsheetId, 'Transactions!A2:F');
+  const query = `${SPREADSHEET_SCHEMA.transactionsTab.title}!${SPREADSHEET_SCHEMA.transactionsTab.ranges.transactions}`;
+  const rows = await getSpreadsheetValues<string | number>(context.spreadsheetId, query);
 
   return rows.map(rowToTransaction).filter((transaction): transaction is Transaction => transaction !== null);
 };

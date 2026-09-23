@@ -6,6 +6,7 @@ import { setAuthorizationHeader } from '../api';
 import { SpreadsheetStatus } from '../types/spreadsheet';
 import { SessionStatus } from '../types/auth';
 import { initializeGoogleAuth, loadGoogleSDK } from './googleAuth';
+import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -37,10 +38,8 @@ export const initializeUserSession = async (token: string) => {
   logoutTimer = setTimeout(logout, 10 * 60 * 1000);
 
   try {
-    const title = 'MintSheets_financial_spreadsheet_MVP';
-
     console.log('[App] initializing cloud spreadsheet...');
-    const spreadsheetId = await findOrCreateSpreadsheet(googleStore.spreadsheetId, title);
+    const spreadsheetId = await findOrCreateSpreadsheet(googleStore.spreadsheetId, SPREADSHEET_SCHEMA.title);
     googleStore.setSpreadsheetId(spreadsheetId);
     console.log('[App] Cloud spreadsheet successfully linked to session!');
 
@@ -68,6 +67,7 @@ export const initializeUserSession = async (token: string) => {
       await financeStore.syncLocalTransactions();
 
       googleStore.setStatus(SessionStatus.READY);
+      googleStore.mintsWasConnected = true;
 
       router.push({ name: 'main' });
 
