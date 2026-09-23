@@ -1,4 +1,4 @@
-import type { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
+import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 
 export interface CreateSpreadsheetResponse {
   spreadsheetId: string;

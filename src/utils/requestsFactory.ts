@@ -23,7 +23,7 @@ export const toSheetsRowData = (data: readonly RawCellValue[]): SheetsRowData =>
     if (typeof cell === 'object') {
       const value = cell.format?.bold ? buildBoldCell(cell.value) : buildCell(cell.value);
       if (cell.format?.date) {
-        value.userEnteredFormat = { numberFormat: { type: 'DATE', pattern: 'YYYY-MM-DD' } };
+        value.userEnteredFormat = { numberFormat: { type: 'DATE', pattern: 'yyyy-MM-dd' } };
       }
 
       return [...acc, value];

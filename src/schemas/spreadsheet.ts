@@ -5,7 +5,7 @@ export const SPREADSHEET_SCHEMA = {
     title: 'Settings',
     key: 'settings',
     initialRows: [
-      [{ value: 'Status', format: { bold: true } }, 'active'],
+      [{ value: 'Status', format: { bold: true } }, 'draft'],
       [],
       [{ value: 'Initial balance', format: { bold: true } }, 0],
       [],
