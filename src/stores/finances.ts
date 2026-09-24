@@ -51,22 +51,22 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         }
       };
 
+      const allTransactionsSorted = computed<Transaction[]>(() => {
+        return [...pendingTransactions.value, ...transactions.value].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+      });
+
       const monthIncome = computed<number>(() => {
-        return transactions.value
+        return allTransactionsSorted.value
           .filter((transaction) => transaction.type === TransactionTypes.INCOME && isCurrentMonth(transaction.date))
           .reduce((total, transaction) => total + transaction.amount, 0);
       });
 
       const monthSpending = computed<number>(() => {
-        return transactions.value
+        return allTransactionsSorted.value
           .filter((transaction) => transaction.type === TransactionTypes.SPENDING && isCurrentMonth(transaction.date))
           .reduce((total, transaction) => total + transaction.amount, 0);
-      });
-
-      const allTransactionsSorted = computed<Transaction[]>(() => {
-        return [...pendingTransactions.value, ...transactions.value].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-        );
       });
 
       const groupTransactions = (list: Transaction[]): Record<string, Transaction[]> => {
