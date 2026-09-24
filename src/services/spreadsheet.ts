@@ -6,11 +6,11 @@ import {
   findSpreadsheetById,
   findSpreadsheetByTitle,
 } from '../api/sheets';
-import type { SheetsIDs, SheetsRowData, SpreadsheetStatus } from '../types/spreadsheet';
+import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
+import type { SheetsIDs, SpreadsheetStatus } from '../types/spreadsheet';
 import {
   buildRenameSheetRequest,
   buildAddSheetRequest,
-  buildBoldCell,
   buildUpdateCellsValueRequest,
   buildConvertToTableRequest,
 } from '../utils/requestsFactory';
@@ -31,38 +31,13 @@ export const initSpreadsheet = async (title: string): Promise<string | false> =>
 
 export const setupSpreadsheet = async (id: string): Promise<boolean> => {
   try {
-    await batchUpdateSpreadsheet(id, [buildRenameSheetRequest(0, 'Total')]); //rename first tab to 'Total'
-    const transactionsSheetId = await createSpreadsheetTab(id, 'Transactions'); //create second tab 'Transactions'
-
-    const totalSheetInitData: SheetsRowData[] = [
-      {
-        values: [buildBoldCell('status'), { userEnteredValue: { stringValue: 'draft' } }],
-      },
-      { values: [] },
-      {
-        values: [buildBoldCell('Initial Balance'), { userEnteredValue: { numberValue: 0 } }],
-      },
-      { values: [] },
-      { values: [buildBoldCell('Categories:')] },
-    ];
-
-    const transactionsSheetInitData: SheetsRowData[] = [
-      {
-        values: [
-          buildBoldCell('ID'),
-          buildBoldCell('Date'),
-          buildBoldCell('Type'),
-          buildBoldCell('Category'),
-          buildBoldCell('Amount'),
-          buildBoldCell('Comment'),
-        ],
-      },
-    ];
+    const transactionsSheetId = await createSpreadsheetTab(id, SPREADSHEET_SCHEMA.transactionsTab.title);
 
     await batchUpdateSpreadsheet(id, [
-      buildUpdateCellsValueRequest(0, 0, 0, totalSheetInitData), //write init data to 'Total'
-      buildUpdateCellsValueRequest(transactionsSheetId, 0, 0, transactionsSheetInitData), //write init data to 'Transactions'
-      buildConvertToTableRequest('Transactions', transactionsSheetId),
+      buildRenameSheetRequest(0, SPREADSHEET_SCHEMA.settingsTab.title), //rename first tab to 'Settings'
+      buildUpdateCellsValueRequest(0, 0, 0, SPREADSHEET_SCHEMA.settingsTab.initialRows), //write init data to 'Settings'
+      buildUpdateCellsValueRequest(transactionsSheetId, 0, 0, SPREADSHEET_SCHEMA.transactionsTab.initialRows), //write init data to 'Transactions'
+      buildConvertToTableRequest(SPREADSHEET_SCHEMA.transactionsTab.title, transactionsSheetId), //convert raw data to table
     ]);
 
     return true;
@@ -92,17 +67,22 @@ export const getSpreadsheetTabsIDs = async (id: string): Promise<SheetsIDs> => {
     {} as Record<string, number>,
   );
 
-  if (tabs.total == null || tabs.transactions == null)
+  const settingsId = tabs[SPREADSHEET_SCHEMA.settingsTab.key];
+  const transactionsId = tabs[SPREADSHEET_SCHEMA.transactionsTab.key];
+
+  if (settingsId == null || transactionsId == null) {
     throw new Error('[Spreadsheet Service] Failed to receive sheets IDs.');
+  }
 
   return {
-    total: tabs.total,
-    transactions: tabs.transactions,
+    settings: settingsId,
+    transactions: transactionsId,
   };
 };
 
 export const getSpreadsheetStatus = async (id: string): Promise<SpreadsheetStatus> => {
-  const values = await getSpreadsheetValues<SpreadsheetStatus>(id, 'Total!B1:B1');
+  const query = `${SPREADSHEET_SCHEMA.settingsTab.title}!${SPREADSHEET_SCHEMA.settingsTab.ranges.status}`;
+  const values = await getSpreadsheetValues<SpreadsheetStatus>(id, query);
 
   return values[0]?.[0];
 };

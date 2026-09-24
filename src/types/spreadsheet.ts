@@ -1,3 +1,5 @@
+import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
+
 export interface CreateSpreadsheetResponse {
   spreadsheetId: string;
   spreadsheetUrl: string;
@@ -68,8 +70,9 @@ export interface SheetsRowData {
 export type SpreadsheetValue = string | number | boolean | null;
 
 export interface SheetsIDs {
-  total: number;
-  transactions: number;
+  [SPREADSHEET_SCHEMA.settingsTab.key]: number;
+  [SPREADSHEET_SCHEMA.transactionsTab.key]: number;
+  [key: string]: number;
 }
 
 export interface SpreadsheetContext {
@@ -83,3 +86,5 @@ export const SpreadsheetStatus = {
 } as const;
 
 export type SpreadsheetStatus = null | (typeof SpreadsheetStatus)[keyof typeof SpreadsheetStatus];
+
+export type RawCellValue = string | number | { value: string | number; format?: { bold?: boolean; date?: boolean } };

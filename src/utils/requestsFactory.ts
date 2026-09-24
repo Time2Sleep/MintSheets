@@ -1,4 +1,4 @@
-import type { SheetsCellData, SheetsRowData } from '../types/spreadsheet';
+import type { RawCellValue, SheetsCellData, SheetsRowData } from '../types/spreadsheet';
 
 export const buildRenameSheetRequest = (sheetId: number, newTitle: string) => ({
   updateSheetProperties: {
@@ -18,33 +18,30 @@ export const buildAddSheetRequest = (title: string) => ({
   },
 });
 
-export const buildRange = (
-  sheetId: number,
-  startRow: number,
-  endRow: number,
-  startColumn: number,
-  endColumn: number,
-) => ({
-  sheetId,
-  startRowIndex: startRow,
-  endRowIndex: endRow,
-  startColumnIndex: startColumn,
-  endColumnIndex: endColumn,
-});
+export const toSheetsRowData = (data: readonly RawCellValue[]): SheetsRowData => {
+  const values: SheetsCellData[] = data.reduce((acc, cell) => {
+    if (typeof cell === 'object') {
+      const value = cell.format?.bold ? buildBoldCell(cell.value) : buildCell(cell.value);
+      if (cell.format?.date) {
+        value.userEnteredFormat = { numberFormat: { type: 'DATE', pattern: 'yyyy-MM-dd' } };
+      }
 
-export const buildRow = (data: (string | number)[]): SheetsRowData => {
-  const values: SheetsCellData[] = data.reduce((acc, cell) => [...acc, buildCell(cell)], [] as SheetsCellData[]);
+      return [...acc, value];
+    }
+
+    return [...acc, buildCell(cell)];
+  }, [] as SheetsCellData[]);
 
   return { values };
 };
 
-export const buildCell = (text: string | number) => {
+export const buildCell = (text: string | number): SheetsCellData => {
   const userEnteredValue = typeof text === 'string' ? { stringValue: text } : { numberValue: text };
 
   return { userEnteredValue };
 };
 
-export const buildBoldCell = (text: string | number) => {
+export const buildBoldCell = (text: string | number): SheetsCellData => {
   const userEnteredValue = typeof text === 'string' ? { stringValue: text } : { numberValue: text };
 
   return { userEnteredValue, userEnteredFormat: { textFormat: { bold: true } } };
@@ -66,7 +63,7 @@ export const buildUpdateCellsValueRequest = (
   sheetId: number,
   rowIndex: number,
   columnIndex: number,
-  rows: SheetsRowData[],
+  rows: readonly (readonly RawCellValue[])[],
 ) => ({
   updateCells: {
     start: {
@@ -74,7 +71,7 @@ export const buildUpdateCellsValueRequest = (
       rowIndex,
       columnIndex,
     },
-    rows,
+    rows: rows.map(toSheetsRowData),
     fields: 'userEnteredValue,userEnteredFormat',
   },
 });
