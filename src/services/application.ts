@@ -16,7 +16,7 @@ export const initializeAuth = async () => {
   const handleAuthError = (error: Error) => {
     console.warn('[Auth] Google authentication failed:', error);
 
-    googleStore.setStatus(googleStore.mintsWasConnected ? SessionStatus.OFFLINE : SessionStatus.ERROR);
+    googleStore.handleError();
   };
 
   try {
@@ -67,7 +67,7 @@ export const initializeUserSession = async (token: string) => {
       await financeStore.syncLocalTransactions();
 
       googleStore.setStatus(SessionStatus.READY);
-      googleStore.mintsWasConnected = true;
+      googleStore.hasCachedSession = true;
 
       router.push({ name: 'main' });
 
@@ -77,7 +77,7 @@ export const initializeUserSession = async (token: string) => {
     throw new Error('Something went wrong during spreadsheet initialization');
   } catch (error) {
     console.warn('[App] Critical error while preparing spreadsheet:', error);
-    googleStore.setStatus(SessionStatus.ERROR);
+    googleStore.handleError();
   }
 };
 

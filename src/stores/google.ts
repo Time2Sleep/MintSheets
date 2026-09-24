@@ -10,12 +10,12 @@ export const useGoogleStore = defineStore(
     const sheetsId = ref<SheetsIDs | null>(null);
     const sessionStatus = ref<SessionStatus>(SessionStatus.DISCONNECTED);
 
-    const mintsWasConnected = ref<boolean>(false);
+    const hasCachedSession = ref<boolean>(false);
 
     const resetValues = () => {
       spreadsheetId.value = null;
       sheetsId.value = null;
-      mintsWasConnected.value = false;
+      hasCachedSession.value = false;
       sessionStatus.value = SessionStatus.DISCONNECTED;
     };
 
@@ -31,8 +31,12 @@ export const useGoogleStore = defineStore(
       sessionStatus.value = status;
     };
 
+    const handleError = () => {
+      setStatus(hasCachedSession.value ? SessionStatus.OFFLINE : SessionStatus.ERROR);
+    };
+
     return {
-      mintsWasConnected,
+      hasCachedSession,
       spreadsheetId,
       sheetsId,
       sessionStatus,
@@ -40,6 +44,7 @@ export const useGoogleStore = defineStore(
       setSpreadsheetId,
       setSheetsIDs,
       setStatus,
+      handleError,
     };
   },
   {
