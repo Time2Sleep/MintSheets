@@ -1,5 +1,5 @@
 export const SPREADSHEET_SCHEMA = {
-  title: import.meta.env.VITE_SPREADSHEET_TITLE ?? 'MintSheets_financial_spreadsheet_MVP',
+  title: import.meta.env.VITE_SPREADSHEET_TITLE || 'MintSheets_financial_spreadsheet_MVP',
   locale: 'en_US',
 
   settingsTab: {
@@ -50,7 +50,7 @@ export const SPREADSHEET_SCHEMA = {
         { value: 'Spending', format: { bold: true } },
         { value: 'Average', format: { bold: true } },
         { value: 'January', format: { bold: true } },
-        { value: 'Febrary', format: { bold: true } },
+        { value: 'February', format: { bold: true } },
         { value: 'March', format: { bold: true } },
         { value: 'April', format: { bold: true } },
         { value: 'May', format: { bold: true } },
@@ -65,8 +65,7 @@ export const SPREADSHEET_SCHEMA = {
       ],
     ],
     coords: {
-      spendingCategories: { row: 3, column: 0 },
-      incomeCategories: { row: 16, column: 0 },
+      categories: { row: 3, column: 0 },
     },
     ranges: {
       january: 'C',

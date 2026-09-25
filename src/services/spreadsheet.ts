@@ -82,6 +82,7 @@ export const getSpreadsheetTabsIDs = async (id: string): Promise<SheetsIDs> => {
   }
 
   return {
+    ...tabs,
     settings: settingsId,
     transactions: transactionsId,
   };

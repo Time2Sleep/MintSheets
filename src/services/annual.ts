@@ -16,10 +16,14 @@ export const initYear = async (
     tabId = await createYearTab(spreadsheetId, year);
     await configureYearTab(tabId, spreadsheetId, year, categories);
   } catch (error) {
-    console.warn(error);
+    console.warn('[Year Service] Failed to initialize year:', error);
 
     if (tabId) {
-      deleteSpreadsheetTab(spreadsheetId, tabId);
+      try {
+        await deleteSpreadsheetTab(spreadsheetId, tabId);
+      } catch (cleanupError) {
+        console.warn('[Year Service] Failed to cleanup year tab:', cleanupError);
+      }
     }
   }
 };
@@ -39,14 +43,14 @@ const configureYearTab = async (
   const yearSchema = SPREADSHEET_SCHEMA.yearTab;
 
   const spendingCategoriesRows = categories.spending.map((category, index) => {
-    const rowIndex = index + yearSchema.coords.spendingCategories.row;
+    const rowIndex = index + yearSchema.coords.categories.row;
     return buildCategoryRow(category, rowIndex, year, TransactionTypes.SPENDING);
   });
 
   const incomeTitle = { value: 'Income', format: { bold: true } };
 
   const incomeCategoriesRows = categories.income.map((category, index) => {
-    const rowIndex = index + yearSchema.coords.incomeCategories.row;
+    const rowIndex = index + yearSchema.coords.categories.row + spendingCategoriesRows.length + 2; // 2 = 1 empty line + 1 header line
     return buildCategoryRow(category, rowIndex, year, TransactionTypes.INCOME);
   });
 

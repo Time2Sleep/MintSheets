@@ -47,14 +47,15 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         try {
           await saveTransactionsToSpreadsheet(context, [transactionToPush]);
           _setTransactionsConfirmed([transactionId]);
-          checkYearByDateString(transactionData.date);
         } catch (error) {
           console.warn('[Finance Store] failed to send transaction to spreadsheet.', error);
         }
+
+        checkYearByDateString(transactionData.date);
       };
 
       const checkYearByDateString = (date: string) => {
-        const year = new Date(date).getFullYear();
+        const year = Number(date.slice(0, 4));
 
         if (year in context.sheets) return;
 

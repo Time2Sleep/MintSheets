@@ -27,7 +27,7 @@ const relogin = async () => {
     <BaseButton v-else-if="!hasCachedSession" @click="loginWithGoogle"> Connect spreadhseet </BaseButton>
     <template v-else>
       <BaseButton @click="refreshGoogleToken"> Continue </BaseButton>
-      <BaseButton visual="link" @click="relogin">Connect another spreadsheet</BaseButton>
+      <BaseButton visual="link" @click="relogin">Logout</BaseButton>
     </template>
 
     <div v-if="sessionStatus === SessionStatus.ERROR" class="text-red-primary">
