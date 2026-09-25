@@ -9,12 +9,14 @@ export const initYear = async (
   spreadsheetId: string,
   year: number,
   categories: { spending: string[]; income: string[] },
-) => {
+): Promise<number | null> => {
   let tabId;
 
   try {
     tabId = await createYearTab(spreadsheetId, year);
     await configureYearTab(tabId, spreadsheetId, year, categories);
+
+    return tabId;
   } catch (error) {
     console.warn('[Year Service] Failed to initialize year:', error);
 
@@ -25,6 +27,8 @@ export const initYear = async (
         console.warn('[Year Service] Failed to cleanup year tab:', cleanupError);
       }
     }
+
+    return null;
   }
 };
 

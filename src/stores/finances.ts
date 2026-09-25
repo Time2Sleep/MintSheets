@@ -59,7 +59,20 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
         if (year in context.sheets) return;
 
-        initYear(context.spreadsheetId, year, { spending: spendingCategories.value, income: incomeCategories.value });
+        const yearTabId = initYear(context.spreadsheetId, year, {
+          spending: spendingCategories.value,
+          income: incomeCategories.value,
+        });
+
+        if (!yearTabId) return;
+
+        updateContext({
+          ...context,
+          sheets: {
+            ...context.sheets,
+            [year]: yearTabId,
+          },
+        });
       };
 
       const allTransactionsSorted = computed<Transaction[]>(() => {
