@@ -18,9 +18,19 @@ export const buildAddSheetRequest = (title: string) => ({
   },
 });
 
+export const buildDeleteSheetRequest = (sheetId: number) => ({
+  deleteSheet: {
+    sheetId,
+  },
+});
+
 export const toSheetsRowData = (data: readonly RawCellValue[]): SheetsRowData => {
   const values: SheetsCellData[] = data.reduce((acc, cell) => {
     if (typeof cell === 'object') {
+      if (cell.format?.formula && typeof cell.value === 'string') {
+        return [...acc, buildFormula(cell.value)];
+      }
+
       const value = cell.format?.bold ? buildBoldCell(cell.value) : buildCell(cell.value);
       if (cell.format?.date) {
         value.userEnteredFormat = { numberFormat: { type: 'DATE', pattern: 'yyyy-MM-dd' } };
@@ -33,6 +43,13 @@ export const toSheetsRowData = (data: readonly RawCellValue[]): SheetsRowData =>
   }, [] as SheetsCellData[]);
 
   return { values };
+};
+
+export const buildFormula = (text: string): SheetsCellData => {
+  return {
+    userEnteredValue: { formulaValue: text },
+    userEnteredFormat: { numberFormat: { type: 'NUMBER', pattern: '0' } },
+  };
 };
 
 export const buildCell = (text: string | number): SheetsCellData => {
@@ -95,5 +112,14 @@ export const buildConvertToTableRequest = (
       },
       name,
     },
+  },
+});
+
+export const buildSetSpreadsheetLocaleRequest = (locale: string) => ({
+  updateSpreadsheetProperties: {
+    properties: {
+      locale,
+    },
+    fields: 'locale',
   },
 });

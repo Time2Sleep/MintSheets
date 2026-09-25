@@ -17,6 +17,7 @@ import {
 import { fetchSettingsFromSpreadsheet, saveSettingsToSpreadsheet } from '../services/settings';
 import { CURRENCIES, type Currency } from '../constants/currencies';
 import { getCurrencyByCode } from '../utils/currency';
+import { initYear } from '../services/annual';
 
 export const createFinanceStore = (initialContext: SpreadsheetContext) =>
   defineStore(
@@ -46,9 +47,18 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         try {
           await saveTransactionsToSpreadsheet(context, [transactionToPush]);
           _setTransactionsConfirmed([transactionId]);
+          checkYearByDateString(transactionData.date);
         } catch (error) {
           console.warn('[Finance Store] failed to send transaction to spreadsheet.', error);
         }
+      };
+
+      const checkYearByDateString = (date: string) => {
+        const year = new Date(date).getFullYear();
+
+        if (year in context.sheets) return;
+
+        initYear(context.spreadsheetId, year, { spending: spendingCategories.value, income: incomeCategories.value });
       };
 
       const allTransactionsSorted = computed<Transaction[]>(() => {

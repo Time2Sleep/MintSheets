@@ -13,6 +13,8 @@ import {
   buildAddSheetRequest,
   buildUpdateCellsValueRequest,
   buildConvertToTableRequest,
+  buildSetSpreadsheetLocaleRequest,
+  buildDeleteSheetRequest,
 } from '../utils/requestsFactory';
 
 export const initSpreadsheet = async (title: string): Promise<string | false> => {
@@ -34,6 +36,7 @@ export const setupSpreadsheet = async (id: string): Promise<boolean> => {
     const transactionsSheetId = await createSpreadsheetTab(id, SPREADSHEET_SCHEMA.transactionsTab.title);
 
     await batchUpdateSpreadsheet(id, [
+      buildSetSpreadsheetLocaleRequest(SPREADSHEET_SCHEMA.locale),
       buildRenameSheetRequest(0, SPREADSHEET_SCHEMA.settingsTab.title), //rename first tab to 'Settings'
       buildUpdateCellsValueRequest(0, 0, 0, SPREADSHEET_SCHEMA.settingsTab.initialRows), //write init data to 'Settings'
       buildUpdateCellsValueRequest(transactionsSheetId, 0, 0, SPREADSHEET_SCHEMA.transactionsTab.initialRows), //write init data to 'Transactions'
@@ -52,6 +55,10 @@ export const createSpreadsheetTab = async (id: string, tabName: string): Promise
   const response = await batchUpdateSpreadsheet(id, [buildAddSheetRequest(tabName)]);
 
   return response.replies[0].addSheet.properties.sheetId;
+};
+
+export const deleteSpreadsheetTab = async (id: string, tabId: number): Promise<void> => {
+  await batchUpdateSpreadsheet(id, [buildDeleteSheetRequest(tabId)]);
 };
 
 export const getSpreadsheetTabsIDs = async (id: string): Promise<SheetsIDs> => {

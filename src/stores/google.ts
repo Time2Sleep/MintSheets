@@ -49,7 +49,7 @@ export const useGoogleStore = defineStore(
   },
   {
     persist: {
-      pick: ['spreadsheetId', 'mintsWasConnected', 'sheetsId'],
+      pick: ['spreadsheetId', 'hasCachedSession', 'sheetsId'],
     },
   },
 );
