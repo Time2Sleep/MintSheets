@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia';
 import BaseButton from '../UI/BaseButton.vue';
 import { loginWithGoogle, refreshGoogleToken } from '../../services/googleAuth';
 import { useGoogleStore } from '../../stores/google';
-import { computed, nextTick } from 'vue';
+import { computed } from 'vue';
 import { SessionStatus } from '../../types/auth';
 import { logout } from '../../services/application';
 
@@ -11,12 +11,6 @@ const googleStore = useGoogleStore();
 const { hasCachedSession, sessionStatus } = storeToRefs(googleStore);
 
 const connecting = computed(() => sessionStatus.value === SessionStatus.INITIALIZING);
-
-const relogin = async () => {
-  logout(true);
-  await nextTick();
-  loginWithGoogle();
-};
 </script>
 
 <template>
@@ -27,7 +21,7 @@ const relogin = async () => {
     <BaseButton v-else-if="!hasCachedSession" @click="loginWithGoogle"> Connect spreadhseet </BaseButton>
     <template v-else>
       <BaseButton @click="refreshGoogleToken"> Continue </BaseButton>
-      <BaseButton visual="link" @click="relogin">Logout</BaseButton>
+      <BaseButton visual="link" @click="logout(true)">Logout</BaseButton>
     </template>
 
     <div v-if="sessionStatus === SessionStatus.ERROR" class="text-red-primary">
