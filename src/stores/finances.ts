@@ -54,12 +54,12 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         checkYearByDateString(transactionData.date);
       };
 
-      const checkYearByDateString = (date: string) => {
+      const checkYearByDateString = async (date: string) => {
         const year = Number(date.slice(0, 4));
 
         if (year in context.sheets) return;
 
-        const yearTabId = initYear(context.spreadsheetId, year, {
+        const yearTabId = await initYear(context.spreadsheetId, year, {
           spending: spendingCategories.value,
           income: incomeCategories.value,
         });
