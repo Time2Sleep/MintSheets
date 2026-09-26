@@ -1,5 +1,6 @@
 export const SPREADSHEET_SCHEMA = {
-  title: 'MintSheets_financial_spreadsheet_MVP',
+  title: import.meta.env.VITE_SPREADSHEET_TITLE || 'MintSheets_financial_spreadsheet_MVP',
+  locale: 'en_US',
 
   settingsTab: {
     title: 'Settings',
@@ -39,6 +40,41 @@ export const SPREADSHEET_SCHEMA = {
     ],
     ranges: {
       transactions: 'A2:F',
+    },
+  },
+
+  yearTab: {
+    initialRows: [
+      [],
+      [
+        { value: 'Spending', format: { bold: true } },
+        { value: 'Average', format: { bold: true } },
+        { value: 'January', format: { bold: true } },
+        { value: 'February', format: { bold: true } },
+        { value: 'March', format: { bold: true } },
+        { value: 'April', format: { bold: true } },
+        { value: 'May', format: { bold: true } },
+        { value: 'June', format: { bold: true } },
+        { value: 'July', format: { bold: true } },
+        { value: 'August', format: { bold: true } },
+        { value: 'September', format: { bold: true } },
+        { value: 'October', format: { bold: true } },
+        { value: 'November', format: { bold: true } },
+        { value: 'December', format: { bold: true } },
+        { value: 'Annual', format: { bold: true } },
+      ],
+    ],
+    coords: {
+      categories: { row: 3, column: 0 },
+    },
+    ranges: {
+      january: 'C',
+      december: 'N',
+      sum: '$E$2:$E',
+      month: '$B$2:$B',
+      year: '$B$2:$B',
+      category: '$D$2:$D',
+      type: '$C$2:$C',
     },
   },
 } as const;

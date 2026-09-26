@@ -24,13 +24,13 @@ export const saveSettingsToSpreadsheet = async (
     settingsSheetId,
     coords.spendingCategories.row,
     coords.spendingCategories.column,
-    [...saveData.spendingCategories.map((category) => [category]), ...Array(100).fill('')],
+    [...saveData.spendingCategories.map((category) => [category]), ...Array(100).fill([''])],
   );
   const saveIncomegCategories = buildUpdateCellsValueRequest(
     settingsSheetId,
     coords.incomeCategories.row,
     coords.incomeCategories.column,
-    [...saveData.incomeCategories.map((category) => [category]), ...Array(100).fill('')],
+    [...saveData.incomeCategories.map((category) => [category]), ...Array(100).fill([''])],
   );
   const setStatusToActive = buildUpdateCellsValueRequest(settingsSheetId, coords.status.row, coords.status.column, [
     ['active'],

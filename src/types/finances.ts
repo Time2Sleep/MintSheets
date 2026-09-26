@@ -5,10 +5,12 @@ export const TransactionTypes = {
   SPENDING: 'spending',
 } as const;
 
+export type TransactionType = (typeof TransactionTypes)[keyof typeof TransactionTypes];
+
 export type Transaction = {
   id: string;
   amount: number;
-  type: (typeof TransactionTypes)[keyof typeof TransactionTypes];
+  type: TransactionType;
   category: string;
   date: string;
   comment?: string;

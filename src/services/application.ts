@@ -81,7 +81,7 @@ export const initializeUserSession = async (token: string) => {
   }
 };
 
-const logout = () => {
+export const logout = (silent = false) => {
   if (logoutTimer) {
     clearTimeout(logoutTimer);
     logoutTimer = undefined;
@@ -90,5 +90,5 @@ const logout = () => {
   const googleStore = useGoogleStore();
   googleStore.resetValues();
   setAuthorizationHeader(null);
-  router.push({ name: 'auth' });
+  if (!silent) router.push({ name: 'auth' });
 };

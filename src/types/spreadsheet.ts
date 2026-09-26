@@ -50,10 +50,11 @@ export interface SheetsCellData {
   userEnteredValue: {
     stringValue?: string;
     numberValue?: number;
+    formulaValue?: string;
   };
   userEnteredFormat?: {
     numberFormat?: {
-      type: 'TEXT' | 'DATE';
+      type: 'TEXT' | 'DATE' | 'NUMBER';
       pattern?: string;
     };
     textFormat?: {
@@ -87,4 +88,14 @@ export const SpreadsheetStatus = {
 
 export type SpreadsheetStatus = null | (typeof SpreadsheetStatus)[keyof typeof SpreadsheetStatus];
 
-export type RawCellValue = string | number | { value: string | number; format?: { bold?: boolean; date?: boolean } };
+export type RawCellValue =
+  | string
+  | number
+  | {
+      value: string | number;
+      format?: {
+        bold?: boolean;
+        date?: boolean;
+        formula?: boolean;
+      };
+    };

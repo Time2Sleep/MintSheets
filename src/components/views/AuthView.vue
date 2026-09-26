@@ -5,9 +5,10 @@ import { loginWithGoogle, refreshGoogleToken } from '../../services/googleAuth';
 import { useGoogleStore } from '../../stores/google';
 import { computed } from 'vue';
 import { SessionStatus } from '../../types/auth';
+import { logout } from '../../services/application';
 
 const googleStore = useGoogleStore();
-const { mintsWasConnected, sessionStatus } = storeToRefs(googleStore);
+const { hasCachedSession, sessionStatus } = storeToRefs(googleStore);
 
 const connecting = computed(() => sessionStatus.value === SessionStatus.INITIALIZING);
 </script>
@@ -17,8 +18,11 @@ const connecting = computed(() => sessionStatus.value === SessionStatus.INITIALI
     <h1 class="text-2xl">Welcome to MintSheets</h1>
 
     <BaseButton v-if="connecting" :disabled="true"> Connecting... </BaseButton>
-    <BaseButton v-else-if="!mintsWasConnected" @click="loginWithGoogle"> Connect Google Sheets </BaseButton>
-    <BaseButton v-else @click="refreshGoogleToken"> Continue </BaseButton>
+    <BaseButton v-else-if="!hasCachedSession" @click="loginWithGoogle"> Connect spreadhseet </BaseButton>
+    <template v-else>
+      <BaseButton @click="refreshGoogleToken"> Continue </BaseButton>
+      <BaseButton visual="link" @click="logout(true)">Logout</BaseButton>
+    </template>
 
     <div v-if="sessionStatus === SessionStatus.ERROR" class="text-red-primary">
       Sorry, something went wrong there. Try again.
