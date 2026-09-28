@@ -1,8 +1,8 @@
 import { batchUpdateSpreadsheet } from '../api/sheets';
 import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 import { TransactionTypes, type TransactionType } from '../types/finances';
-import type { RawCellValue } from '../types/spreadsheet';
-import { buildUpdateCellsValueRequest } from '../utils/requestsFactory';
+import type { RawCellValue, SpreadsheetUpdateBordersRequest } from '../types/spreadsheet';
+import { buildUpdateBordersRequest, buildUpdateCellsValueRequest } from '../utils/requestsFactory';
 import { createSpreadsheetTab, deleteSpreadsheetTab } from './spreadsheet';
 
 export const initYear = async (
@@ -54,7 +54,8 @@ const configureYearTab = async (
   const incomeTitle = { value: 'Income', format: { bold: true } };
 
   const incomeCategoriesRows = categories.income.map((category, index) => {
-    const rowIndex = index + yearSchema.coords.categories.row + spendingCategoriesRows.length + 2; // 2 = 1 empty line + 1 header line
+    const rowIndex =
+      index + yearSchema.coords.categories.row + spendingCategoriesRows.length + yearSchema.gapBetweenCategories;
     return buildCategoryRow(category, rowIndex, year, TransactionTypes.INCOME);
   });
 
@@ -66,6 +67,9 @@ const configureYearTab = async (
       [incomeTitle],
       ...incomeCategoriesRows,
     ]),
+    ...buildBordersRequests(tabId, categories.spending.length, categories.income.length).map((request) => ({
+      ...request,
+    })),
   ]);
 };
 
@@ -102,4 +106,66 @@ const buildCategoryRow = (category: string, rowIndex: number, year: number, type
   row.push(annual);
 
   return row;
+};
+
+const buildBordersRequests = (
+  sheetId: number,
+  spendingCategoriesLength: number,
+  incomeCategoriesLength: number,
+): SpreadsheetUpdateBordersRequest[] => {
+  const { borders, coords, gapBetweenCategories } = SPREADSHEET_SCHEMA.yearTab;
+
+  const headerBordersRequest = buildUpdateBordersRequest(sheetId, borders.header);
+  const monthsBordersRequest = buildUpdateBordersRequest(sheetId, borders.months);
+  const annualBordersRequest = buildUpdateBordersRequest(sheetId, borders.annual);
+
+  const spendingCategoriesLastRowIndex = spendingCategoriesLength + coords.categories.row - 1;
+  const spendingCategoriesBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.spendingCategories,
+    range: borders.spendingCategories.range + spendingCategoriesLastRowIndex,
+  });
+
+  const incomeCategoriesFirstRowIndex = gapBetweenCategories + spendingCategoriesLastRowIndex + 1;
+  const incomeCategoriesLastRowIndex = incomeCategoriesLength + incomeCategoriesFirstRowIndex - 1;
+  const incomeCategoriesLastColumn = borders.spendingCategories.range.split(':')[1];
+  const incomeCategoriesRange = `${borders.incomeCategories.range}${incomeCategoriesFirstRowIndex}:${incomeCategoriesLastColumn}${incomeCategoriesLastRowIndex}`;
+  const incomeCategoriesBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.incomeCategories,
+    range: incomeCategoriesRange,
+  });
+
+  const monthsSpendingValuesBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.monthsSpendingValues,
+    range: borders.monthsSpendingValues.range + spendingCategoriesLastRowIndex,
+  });
+
+  const monthsIncomeValuesLastColumn = borders.monthsSpendingValues.range.split(':')[1];
+  const monthsIncomeValuesRange = `${borders.monthsIncomeValues.range}${incomeCategoriesFirstRowIndex}:${monthsIncomeValuesLastColumn}${incomeCategoriesLastRowIndex}`;
+  const monthsIncomeValuesBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.monthsIncomeValues,
+    range: monthsIncomeValuesRange,
+  });
+
+  const annualSpendingValuesBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.annualSpendingValues,
+    range: borders.annualSpendingValues.range + spendingCategoriesLastRowIndex,
+  });
+
+  const annualIncomeValuesRange = `${borders.annualIncomeValues.range}${incomeCategoriesFirstRowIndex}:${borders.annualIncomeValues.range}${incomeCategoriesLastRowIndex}`;
+  const annualIncomeValuesBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.annualIncomeValues,
+    range: annualIncomeValuesRange,
+  });
+
+  return [
+    headerBordersRequest,
+    monthsBordersRequest,
+    annualBordersRequest,
+    spendingCategoriesBordersRequest,
+    incomeCategoriesBordersRequest,
+    monthsSpendingValuesBordersRequest,
+    monthsIncomeValuesBordersRequest,
+    annualSpendingValuesBordersRequest,
+    annualIncomeValuesBordersRequest,
+  ];
 };

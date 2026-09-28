@@ -1,4 +1,5 @@
-import type { RawCellValue, SheetsCellData, SheetsRowData } from '../types/spreadsheet';
+import type { RawCellValue, SchemaBorders, SheetsCellData, SpreadsheetBorders } from '../types/spreadsheet';
+import { a1RangeToGridRange, toSheetsRowData } from './convert';
 
 export const buildRenameSheetRequest = (sheetId: number, newTitle: string) => ({
   updateSheetProperties: {
@@ -23,27 +24,6 @@ export const buildDeleteSheetRequest = (sheetId: number) => ({
     sheetId,
   },
 });
-
-export const toSheetsRowData = (data: readonly RawCellValue[]): SheetsRowData => {
-  const values: SheetsCellData[] = data.reduce((acc, cell) => {
-    if (typeof cell === 'object') {
-      if (cell.format?.formula && typeof cell.value === 'string') {
-        return [...acc, buildFormula(cell.value)];
-      }
-
-      const value = cell.format?.bold ? buildBoldCell(cell.value) : buildCell(cell.value);
-      if (cell.format?.date) {
-        value.userEnteredFormat = { numberFormat: { type: 'DATE', pattern: 'yyyy-MM-dd' } };
-      }
-
-      return [...acc, value];
-    }
-
-    return [...acc, buildCell(cell)];
-  }, [] as SheetsCellData[]);
-
-  return { values };
-};
 
 export const buildFormula = (text: string): SheetsCellData => {
   return {
@@ -121,5 +101,21 @@ export const buildSetSpreadsheetLocaleRequest = (locale: string) => ({
       locale,
     },
     fields: 'locale',
+  },
+});
+
+export const buildUpdateBordersRequest = (
+  sheetId: number,
+  borders: SchemaBorders,
+): { updateBorders: SpreadsheetBorders } => ({
+  updateBorders: {
+    range: {
+      sheetId,
+      ...a1RangeToGridRange(borders.range),
+    },
+    top: borders.top ? { style: borders.top } : undefined,
+    bottom: borders.bottom ? { style: borders.bottom } : undefined,
+    right: borders.right ? { style: borders.right } : undefined,
+    left: borders.left ? { style: borders.left } : undefined,
   },
 });

@@ -99,3 +99,35 @@ export type RawCellValue =
         formula?: boolean;
       };
     };
+
+export interface GridRange {
+  sheetId: number;
+  startRowIndex: number;
+  endRowIndex: number;
+  startColumnIndex: number;
+  endColumnIndex: number;
+}
+
+export interface SpreadsheetCellBorder {
+  style: 'DOUBLE' | 'SOLID';
+}
+
+export interface SchemaBorders {
+  range: string;
+  right?: SpreadsheetCellBorder['style'];
+  left?: SpreadsheetCellBorder['style'];
+  bottom?: SpreadsheetCellBorder['style'];
+  top?: SpreadsheetCellBorder['style'];
+}
+
+export interface SpreadsheetBorders {
+  range: GridRange;
+  right?: SpreadsheetCellBorder;
+  left?: SpreadsheetCellBorder;
+  bottom?: SpreadsheetCellBorder;
+  top?: SpreadsheetCellBorder;
+}
+
+export interface SpreadsheetUpdateBordersRequest {
+  updateBorders: SpreadsheetBorders;
+}
