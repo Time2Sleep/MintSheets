@@ -19,7 +19,7 @@ export default defineConfig({
         theme_color: '#121212',
         background_color: '#121212',
         display: 'standalone',
-        start_url: '/mintsheets/',
+        start_url: '/MintSheets/',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -35,5 +35,5 @@ export default defineConfig({
       },
     }),
   ],
-  base: '/mintsheets/',
+  base: '/MintSheets/',
 });
