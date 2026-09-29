@@ -8,7 +8,7 @@ import { SessionStatus } from '../../types/auth';
 import { logout } from '../../services/application';
 
 const googleStore = useGoogleStore();
-const { hasCachedSession, sessionStatus } = storeToRefs(googleStore);
+const { userInfo, sessionStatus } = storeToRefs(googleStore);
 
 const connecting = computed(() => sessionStatus.value === SessionStatus.INITIALIZING);
 </script>
@@ -18,9 +18,9 @@ const connecting = computed(() => sessionStatus.value === SessionStatus.INITIALI
     <h1 class="text-2xl">Welcome to MintSheets</h1>
 
     <BaseButton v-if="connecting" :disabled="true"> Connecting... </BaseButton>
-    <BaseButton v-else-if="!hasCachedSession" @click="loginWithGoogle"> Connect spreadhseet </BaseButton>
+    <BaseButton v-else-if="!userInfo" @click="loginWithGoogle"> Connect spreadhseet </BaseButton>
     <template v-else>
-      <BaseButton @click="refreshGoogleToken"> Continue </BaseButton>
+      <BaseButton @click="refreshGoogleToken(userInfo.sub)"> Continue as {{ userInfo.given_name }}</BaseButton>
       <BaseButton visual="link" @click="logout(true)">Logout</BaseButton>
     </template>
 

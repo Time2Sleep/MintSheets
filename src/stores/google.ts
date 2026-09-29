@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { SheetsIDs } from '../types/spreadsheet';
-import { SessionStatus } from '../types/auth';
+import { SessionStatus, type UserInfo } from '../types/auth';
 
 export const useGoogleStore = defineStore(
   'google',
@@ -9,13 +9,12 @@ export const useGoogleStore = defineStore(
     const spreadsheetId = ref<string | null>(null);
     const sheetsId = ref<SheetsIDs | null>(null);
     const sessionStatus = ref<SessionStatus>(SessionStatus.DISCONNECTED);
-
-    const hasCachedSession = ref<boolean>(false);
+    const userInfo = ref<UserInfo | null>(null);
 
     const resetValues = () => {
       spreadsheetId.value = null;
       sheetsId.value = null;
-      hasCachedSession.value = false;
+      userInfo.value = null;
       sessionStatus.value = SessionStatus.DISCONNECTED;
     };
 
@@ -32,10 +31,10 @@ export const useGoogleStore = defineStore(
     };
 
     return {
-      hasCachedSession,
       spreadsheetId,
       sheetsId,
       sessionStatus,
+      userInfo,
       resetValues,
       setSpreadsheetId,
       setSheetsIDs,
@@ -44,7 +43,7 @@ export const useGoogleStore = defineStore(
   },
   {
     persist: {
-      pick: ['spreadsheetId', 'hasCachedSession', 'sheetsId'],
+      pick: ['spreadsheetId', 'sheetsId', 'userInfo'],
     },
   },
 );

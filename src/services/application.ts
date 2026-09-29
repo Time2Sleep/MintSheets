@@ -7,6 +7,7 @@ import { SpreadsheetStatus } from '../types/spreadsheet';
 import { SessionStatus } from '../types/auth';
 import { initializeGoogleAuth, loadGoogleSDK } from './googleAuth';
 import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
+import { getUserInfo } from '../api/google';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -15,7 +16,7 @@ const handleAuthError = (error: Error) => {
 
   const googleStore = useGoogleStore();
 
-  if (googleStore.hasCachedSession) {
+  if (googleStore.userInfo) {
     googleStore.setStatus(SessionStatus.OFFLINE);
 
     router.push({ name: 'main' });
@@ -43,7 +44,7 @@ export const initializeUserSession = async (token: string) => {
   if (logoutTimer) {
     clearTimeout(logoutTimer);
   }
-  logoutTimer = setTimeout(logout, 10 * 60 * 1000);
+  logoutTimer = setTimeout(logout, 60 * 60 * 1000);
 
   try {
     console.log('[App] initializing cloud spreadsheet...');
@@ -75,7 +76,8 @@ export const initializeUserSession = async (token: string) => {
       await financeStore.syncLocalTransactions();
 
       googleStore.setStatus(SessionStatus.READY);
-      googleStore.hasCachedSession = true;
+      const { sub, email, given_name, family_name } = await getUserInfo();
+      googleStore.userInfo = { sub, email, given_name, family_name };
 
       router.push({ name: 'main' });
 
