@@ -50,7 +50,8 @@ export const initializeGoogleAuth = (
 
   tokenClient = window.google.accounts.oauth2.initTokenClient({
     client_id: clientId,
-    scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.metadata.readonly',
+    scope:
+      'openid profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.metadata.readonly',
     callback: (response: TokenResponse) => {
       if (response.access_token) {
         onTokenReceived(response.access_token);
@@ -69,9 +70,9 @@ export const loginWithGoogle = (): void => {
   }
 };
 
-export const refreshGoogleToken = (): void => {
+export const refreshGoogleToken = (login_hint: string): void => {
   if (tokenClient) {
-    tokenClient.requestAccessToken({ prompt: '' });
+    tokenClient.requestAccessToken({ prompt: '', login_hint });
   } else {
     console.warn('Token client is not initialized');
   }
