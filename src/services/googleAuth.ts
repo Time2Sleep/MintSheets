@@ -51,7 +51,7 @@ export const initializeGoogleAuth = (
   tokenClient = window.google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope:
-      'openid email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.metadata.readonly',
+      'openid profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.metadata.readonly',
     callback: (response: TokenResponse) => {
       if (response.access_token) {
         onTokenReceived(response.access_token);

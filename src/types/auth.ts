@@ -49,6 +49,6 @@ export type SessionStatus = (typeof SessionStatus)[keyof typeof SessionStatus];
 export interface UserInfo {
   sub: string;
   email: string;
-  given_name: string;
-  family_name: string;
+  given_name?: string;
+  family_name?: string;
 }

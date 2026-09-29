@@ -45,7 +45,7 @@ const handleSubmit = () => {
   clearForm();
 
   if (googleStore.sessionStatus === SessionStatus.OFFLINE) {
-    refreshGoogleToken();
+    refreshGoogleToken(googleStore.userInfo?.sub || '');
   }
 };
 
