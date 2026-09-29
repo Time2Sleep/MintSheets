@@ -23,7 +23,7 @@ const max = computed(() => {
 </script>
 
 <template>
-  <WrapperContainer class="active:scale-98 transition-transform duration-200">
+  <WrapperContainer class="active:scale-98 transition-transform duration-200 p-4">
     <div class="text-xl">{{ value.toLocaleString() }} {{ currency.symbol }}</div>
 
     <div class="mb-4">{{ title }}</div>

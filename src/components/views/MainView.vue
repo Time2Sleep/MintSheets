@@ -28,15 +28,15 @@ onMounted(() => {
 
 <template>
   <div ref="content">
-    <div class="flex justify-between items-center pb-4 pt-6">
-      <h1 class="text-2xl">Hello, {{ userInfo?.given_name || 'User' }}!</h1>
+    <div class="flex justify-between items-center pb-3 pt-4">
+      <h1 class="text-xl">Hello, {{ userInfo?.given_name || 'User' }}!</h1>
 
-      <p v-if="sessionStatus === SessionStatus.OFFLINE" class="rounded-xl bg-red-secondary text-red-primary px-4">
+      <p v-if="sessionStatus === SessionStatus.OFFLINE" class="rounded-xl bg-red-secondary text-red-primary px-3">
         Offline
       </p>
     </div>
 
-    <RouterLink to="analytics" class="flex gap-4 mb-4">
+    <RouterLink to="analytics" class="flex gap-3 mb-3">
       <FinanceCard
         class="flex-1"
         title="Spending"
@@ -55,7 +55,7 @@ onMounted(() => {
     </RouterLink>
 
     <WrapperContainer
-      :gap="4"
+      :gap="3"
       class="mb-4 transition-opacity duration-300 ease-in-out"
       :class="{ 'opacity-0': bottomSheetExpanded }"
     >
