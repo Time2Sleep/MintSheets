@@ -67,6 +67,7 @@ export const SPREADSHEET_SCHEMA = {
     coords: {
       categories: { row: 3, column: 0 },
     },
+    gapBetweenCategories: 2, // 2 = 1 empty line + 1 header line
     ranges: {
       january: 'C',
       december: 'N',
@@ -75,6 +76,62 @@ export const SPREADSHEET_SCHEMA = {
       year: '$B$2:$B',
       category: '$D$2:$D',
       type: '$C$2:$C',
+    },
+    borders: {
+      header: {
+        range: 'A2:B2',
+        top: 'SOLID',
+        left: 'SOLID',
+        bottom: 'SOLID',
+        right: 'DOUBLE',
+      },
+      months: {
+        range: 'C2:N2',
+        top: 'SOLID',
+        bottom: 'SOLID',
+      },
+      annual: {
+        range: 'O2:O2',
+        top: 'SOLID',
+        bottom: 'SOLID',
+        right: 'SOLID',
+        left: 'DOUBLE',
+      },
+      spendingCategories: {
+        range: 'A3:B',
+        right: 'DOUBLE',
+        left: 'SOLID',
+        bottom: 'SOLID',
+      },
+      incomeCategories: {
+        range: 'A',
+        right: 'DOUBLE',
+        left: 'SOLID',
+        bottom: 'SOLID',
+        top: 'SOLID',
+      },
+      monthsSpendingValues: {
+        range: 'C3:N',
+        bottom: 'SOLID',
+      },
+      monthsIncomeValues: {
+        range: 'C',
+        top: 'SOLID',
+        bottom: 'SOLID',
+      },
+      annualSpendingValues: {
+        range: 'O3:O',
+        right: 'SOLID',
+        bottom: 'SOLID',
+        left: 'DOUBLE',
+      },
+      annualIncomeValues: {
+        range: 'O',
+        top: 'SOLID',
+        right: 'SOLID',
+        bottom: 'SOLID',
+        left: 'DOUBLE',
+      },
     },
   },
 } as const;

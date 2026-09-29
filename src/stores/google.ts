@@ -31,10 +31,6 @@ export const useGoogleStore = defineStore(
       sessionStatus.value = status;
     };
 
-    const handleError = () => {
-      setStatus(hasCachedSession.value ? SessionStatus.OFFLINE : SessionStatus.ERROR);
-    };
-
     return {
       hasCachedSession,
       spreadsheetId,
@@ -44,7 +40,6 @@ export const useGoogleStore = defineStore(
       setSpreadsheetId,
       setSheetsIDs,
       setStatus,
-      handleError,
     };
   },
   {

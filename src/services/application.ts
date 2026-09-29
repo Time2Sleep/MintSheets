@@ -10,15 +10,23 @@ import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
-export const initializeAuth = async () => {
+const handleAuthError = (error: Error) => {
+  console.warn('[Auth] Google authentication failed:', error);
+
   const googleStore = useGoogleStore();
 
-  const handleAuthError = (error: Error) => {
-    console.warn('[Auth] Google authentication failed:', error);
+  if (googleStore.hasCachedSession) {
+    googleStore.setStatus(SessionStatus.OFFLINE);
 
-    googleStore.handleError();
-  };
+    router.push({ name: 'main' });
 
+    return;
+  }
+
+  googleStore.setStatus(SessionStatus.ERROR);
+};
+
+export const initializeAuth = async () => {
   try {
     await loadGoogleSDK();
     initializeGoogleAuth(initializeUserSession, handleAuthError);
@@ -77,7 +85,7 @@ export const initializeUserSession = async (token: string) => {
     throw new Error('Something went wrong during spreadsheet initialization');
   } catch (error) {
     console.warn('[App] Critical error while preparing spreadsheet:', error);
-    googleStore.handleError();
+    handleAuthError(error instanceof Error ? error : new Error(String(error)));
   }
 };
 
