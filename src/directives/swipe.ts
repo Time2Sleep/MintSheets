@@ -11,7 +11,7 @@ const createSwipeDirective = (direction: 'up' | 'down'): Directive<SwipeHTMLElem
   return {
     mounted(el, binding) {
       let touchStartY = 0;
-      const MIN_SWIPE_DISTANCE = 50;
+      const MIN_SWIPE_DISTANCE = 20;
 
       const touchstart = (event: TouchEvent) => {
         touchStartY = event.touches[0].clientY;

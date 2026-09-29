@@ -57,10 +57,10 @@ const clearForm = () => {
 </script>
 
 <template>
-  <form class="flex flex-col gap-4" @submit.prevent="handleSubmit">
+  <form class="flex flex-col gap-3" @submit.prevent="handleSubmit">
     <BaseInput v-model="form.date" name="date" placeholder="Date" type="date" />
 
-    <div class="flex gap-4">
+    <div class="flex gap-3">
       <BaseButton
         class="flex-1"
         :active="form.type === TransactionTypes.SPENDING"

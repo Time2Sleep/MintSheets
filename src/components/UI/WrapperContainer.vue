@@ -16,7 +16,7 @@ const gapStyle = computed(() => {
 </script>
 
 <template>
-  <div class="bg-dark-secondary p-4 rounded-2xl flex flex-col" :style="{ gap: gapStyle }">
+  <div class="bg-dark-secondary p-3 rounded-2xl flex flex-col" :style="{ gap: gapStyle }">
     <slot />
   </div>
 </template>
