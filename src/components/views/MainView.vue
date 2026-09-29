@@ -10,7 +10,7 @@ import { useCurrentFinanceStore } from '../../stores/financeStoreRegistry';
 import { SessionStatus } from '../../types/auth';
 
 const googleStore = useGoogleStore();
-const { sessionStatus } = storeToRefs(googleStore);
+const { sessionStatus, userInfo } = storeToRefs(googleStore);
 
 const financeStore = useCurrentFinanceStore();
 const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
@@ -29,7 +29,7 @@ onMounted(() => {
 <template>
   <div ref="content">
     <div class="flex justify-between items-center pb-4 pt-6">
-      <h1 class="text-2xl">Hello, User!</h1>
+      <h1 class="text-2xl">Hello, {{ userInfo?.given_name || 'User' }}!</h1>
 
       <p v-if="sessionStatus === SessionStatus.OFFLINE" class="rounded-xl bg-red-secondary text-red-primary px-4">
         Offline

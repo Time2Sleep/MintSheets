@@ -21,7 +21,7 @@ export interface TokenResponse {
 }
 
 export interface TokenClient {
-  requestAccessToken: (options?: { prompt?: 'none' | 'consent' | 'select_account' | '' }) => void;
+  requestAccessToken: (options?: { prompt?: 'none' | 'consent' | 'select_account' | ''; login_hint?: string }) => void;
 }
 
 export interface GoogleAccountsOAuth2 {
@@ -45,3 +45,10 @@ export const SessionStatus = {
 } as const;
 
 export type SessionStatus = (typeof SessionStatus)[keyof typeof SessionStatus];
+
+export interface UserInfo {
+  sub: string;
+  email: string;
+  given_name: string;
+  family_name: string;
+}
