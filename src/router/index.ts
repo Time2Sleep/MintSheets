@@ -5,7 +5,7 @@ import { routes } from './routes';
 import { SessionStatus } from '../types/auth';
 
 export const router = createRouter({
-  history: createWebHistory('/mintsheets/'),
+  history: createWebHistory('/MintSheets/'),
   routes,
 });
 
