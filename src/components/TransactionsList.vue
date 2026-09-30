@@ -74,7 +74,7 @@ onMounted(() => {
     :class="{ 'transition-transform duration-300 ease-in-out': isReady }"
     :style="style"
   >
-    <WrapperContainer class="flex-1 h-[calc(100dvh-200px)] rounded-br-none rounded-bl-none pt-0">
+    <WrapperContainer class="flex-1 h-[calc(100dvh-180px)] rounded-br-none rounded-bl-none pt-0">
       <div v-swipe-down="handleCollapse" class="py-4">
         <div class="h-[5px] min-h-[5px] mx-auto rounded bg-light-secondary w-[50px]"></div>
       </div>
