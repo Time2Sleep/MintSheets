@@ -12,7 +12,7 @@ import { storeToRefs } from 'pinia';
 import { useCurrentFinanceStore } from '../../stores/financeStoreRegistry';
 
 const financeStore = useCurrentFinanceStore();
-const { spendingCategories, incomeCategories, currency } = storeToRefs(financeStore);
+const { spendingCategories, incomeCategories, currency, initialBalance } = storeToRefs(financeStore);
 const { saveSettings } = financeStore;
 
 const form = reactive<{
@@ -23,7 +23,7 @@ const form = reactive<{
 }>({
   spendingCategories: [...spendingCategories.value],
   incomeCategories: [...incomeCategories.value],
-  balance: '',
+  balance: initialBalance.value.toString(),
   currency: currency.value,
 });
 
