@@ -12,6 +12,11 @@
   --color-green-secondary: #135525;
 }
 
+html,
+body {
+  overscroll-behavior-y: none;
+}
+
 html {
   background-color: var(--color-dark-primary);
 }
