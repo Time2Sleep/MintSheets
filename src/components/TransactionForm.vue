@@ -58,7 +58,7 @@ const clearForm = () => {
 
 <template>
   <form class="flex flex-col gap-3" @submit.prevent="handleSubmit">
-    <BaseInput v-model="form.date" name="date" placeholder="Date" type="date" />
+    <BaseInput v-model="form.date" name="date" placeholder="Date" type="date" icon="calendar" />
 
     <div class="flex gap-3">
       <BaseButton

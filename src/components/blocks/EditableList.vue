@@ -2,6 +2,7 @@
 import BaseInput from '../UI/BaseInput.vue';
 import BaseButton from '../UI/BaseButton.vue';
 import { computed, nextTick, ref } from 'vue';
+import BaseIcon from '../UI/BaseIcon.vue';
 
 const props = defineProps<{
   name: string;
@@ -51,11 +52,7 @@ const getStyle = computed(() => {
     <div ref="scrollableList" class="overflow-y-auto" :style="getStyle">
       <div v-for="(item, index) in list" :key="item" class="my-2 flex gap-2 items-center">
         <BaseButton type="button" :aria-label="`Remove ${item}`" class="!p-1" @click="removeItem(item)">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path
-              d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"
-            />
-          </svg>
+          <BaseIcon icon="crest" size="16px" />
         </BaseButton>
 
         <div>{{ index + 1 }}. {{ item }}</div>
