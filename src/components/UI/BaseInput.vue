@@ -43,7 +43,8 @@ const handleFocus = ({ target, isTrusted }: FocusEvent) => {
       :name="name"
       :placeholder="placeholder"
       :aria-label="label || placeholder || name + ' input'"
-      class="block w-full appearance-none bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl py-2 px-3"
+      class="block w-full appearance-none bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl py-2 pl-3"
+      :class="icon ? 'pr-10' : 'pr-3'"
       :type="type"
       @focus="handleFocus($event)"
     />

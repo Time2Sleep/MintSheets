@@ -19,7 +19,10 @@ const style = computed(() => ({
   fill: props.color,
 }));
 
-const iconComponent = computed(() => defineAsyncComponent(() => import(`@/assets/icons/${props.icon}.svg`)));
+const iconComponent = computed(() => {
+  const icon = props.icon;
+  return defineAsyncComponent(() => import(`../../assets/icons/${icon}.svg`));
+});
 </script>
 
 <template>

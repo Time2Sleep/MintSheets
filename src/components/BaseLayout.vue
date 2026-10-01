@@ -19,7 +19,7 @@ withDefaults(
 </script>
 <template>
   <div class="flex items-center gap-6 pt-6 mb-4">
-    <button v-if="!hideNav" class="flex items-center gap-2 w-fit" @click="goBack">
+    <button v-if="!hideNav" class="flex items-center gap-2 w-fit" aria-label="Back" @click="goBack">
       <BaseIcon icon="arrow-left" size="24px" />
     </button>
 
