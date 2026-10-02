@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 import { router } from '../../router';
-import { CURRENCIES, type Currency } from '../../constants/currencies';
+import { CURRENCIES } from '../../constants/currencies';
 import BaseLayout from '../BaseLayout.vue';
 import BaseButton from '../UI/BaseButton.vue';
 import BaseInput from '../UI/BaseInput.vue';
@@ -15,20 +15,15 @@ const financeStore = useCurrentFinanceStore();
 const { spendingCategories, incomeCategories, currency, initialBalance } = storeToRefs(financeStore);
 const { saveSettings } = financeStore;
 
-const form = reactive<{
-  spendingCategories: string[];
-  incomeCategories: string[];
-  balance: string;
-  currency: Currency;
-}>({
-  spendingCategories: [...spendingCategories.value],
-  incomeCategories: [...incomeCategories.value],
+const form = reactive({
+  spendingCategories: new Map([...spendingCategories.value]),
+  incomeCategories: new Map([...incomeCategories.value]),
   balance: initialBalance.value.toString(),
   currency: currency.value,
 });
 
 const isContinueDisabled = computed<boolean>(
-  () => !form.spendingCategories.length || !form.incomeCategories.length || !form.currency || form.balance === '',
+  () => !form.spendingCategories.size || !form.incomeCategories.size || !form.currency || form.balance === '',
 );
 
 const isError = ref<boolean>(false);
@@ -53,7 +48,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <BaseLayout :hide-nav="true">
+  <BaseLayout>
     <form @submit.prevent="handleSubmit">
       <WrapperContainer :gap="2">
         <BaseSelect v-model="form.currency" name="currency" label="Currency" :options="CURRENCIES" label-key="name" />
@@ -67,20 +62,24 @@ const handleSubmit = async () => {
         />
 
         <EditableList
-          v-model="form.spendingCategories"
+          :model-value="Array.from(form.spendingCategories.keys())"
           placeholder="Food"
           label="Spending categories"
           name="spendingCategories"
           empty-text="Add at least one spending category"
           max-height="20vh"
+          @on-add="(value) => form.spendingCategories.set(value, '')"
+          @on-delete="(value) => form.spendingCategories.delete(value)"
         />
         <EditableList
-          v-model="form.incomeCategories"
+          :model-value="Array.from(form.incomeCategories.keys())"
           placeholder="Salary"
           label="Income categories"
           name="incomeCategories"
           empty-text="Add at least one income category"
           max-height="20vh"
+          @on-add="(value) => form.incomeCategories.set(value, '')"
+          @on-delete="(value) => form.incomeCategories.delete(value)"
         />
 
         <BaseButton :disabled="isContinueDisabled || isLoading" class="mt-4">Continue</BaseButton>

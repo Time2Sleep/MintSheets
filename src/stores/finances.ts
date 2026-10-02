@@ -27,9 +27,12 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const initialBalance = ref<number>(0);
       const transactions = ref<Transaction[]>([]);
       const pendingTransactions = ref<Transaction[]>([]);
-      const spendingCategories = ref<string[]>([]);
-      const incomeCategories = ref<string[]>([]);
+      const spendingCategories = ref<Map<string, string>>(new Map());
+      const incomeCategories = ref<Map<string, string>>(new Map());
       const currency = ref<Currency>(CURRENCIES[0]);
+
+      const spendingCategoriesTitles = computed<string[]>(() => Array.from(spendingCategories.value.keys()));
+      const incomeCategoriesTitles = computed<string[]>(() => Array.from(incomeCategories.value.keys()));
 
       const updateContext = (newContext: SpreadsheetContext) => {
         context = newContext;
@@ -60,8 +63,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         if (year in context.sheets) return;
 
         const yearTabId = await initYear(context.spreadsheetId, year, {
-          spending: spendingCategories.value,
-          income: incomeCategories.value,
+          spending: spendingCategoriesTitles.value,
+          income: incomeCategoriesTitles.value,
         });
 
         if (!yearTabId) return;
@@ -182,7 +185,9 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       return {
         initialBalance,
         spendingCategories,
+        spendingCategoriesTitles,
         incomeCategories,
+        incomeCategoriesTitles,
         transactions,
         monthIncome,
         monthSpending,

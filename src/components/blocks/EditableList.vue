@@ -11,6 +11,10 @@ const props = defineProps<{
   maxHeight?: string;
   emptyText?: string;
 }>();
+const emits = defineEmits<{
+  (e: 'on-add', value: string): void;
+  (e: 'on-delete', value: string): void;
+}>();
 
 const input = ref<string>('');
 const list = defineModel<string[]>();
@@ -21,6 +25,7 @@ const handleAdd = async () => {
   if (!list.value) return;
 
   list.value.push(input.value);
+  emits('on-add', input.value);
   input.value = '';
 
   await nextTick();
@@ -29,6 +34,7 @@ const handleAdd = async () => {
 
 const removeItem = (category: string) => {
   list.value = list.value?.filter((cat) => category !== cat);
+  emits('on-delete', category);
 };
 
 const getStyle = computed(() => {
@@ -48,14 +54,14 @@ const getStyle = computed(() => {
   </div>
 
   <div v-if="!list?.length && emptyText" class="px-2 text-sm">{{ emptyText }}</div>
-  <div v-if="list?.length" class="px-2">
-    <div ref="scrollableList" class="overflow-y-auto" :style="getStyle">
-      <div v-for="(item, index) in list" :key="item" class="my-2 flex gap-2 items-center">
+  <div v-if="list?.length" class="px-2 overflow-y-auto" :style="getStyle">
+    <div ref="scrollableList">
+      <div v-for="(item, index) in list" :key="item" class="my-3 flex gap-3 items-center">
         <BaseButton type="button" :aria-label="`Remove ${item}`" class="!p-1" @click="removeItem(item)">
           <BaseIcon icon="crest" size="16px" />
         </BaseButton>
 
-        <div>{{ index + 1 }}. {{ item }}</div>
+        <div class="leading-none">{{ index + 1 }}. {{ item }}</div>
       </div>
     </div>
   </div>

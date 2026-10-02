@@ -20,18 +20,21 @@ export const saveSettingsToSpreadsheet = async (
     coords.balance.column,
     [[Number(saveData.balance), saveData.currency]],
   );
+
   const saveSpendingCategories = buildUpdateCellsValueRequest(
     settingsSheetId,
     coords.spendingCategories.row,
     coords.spendingCategories.column,
-    [...saveData.spendingCategories.map((category) => [category]), ...Array(100).fill([''])],
+    [...Array.from(saveData.spendingCategories), ...Array(100).fill(['', ''])],
   );
+
   const saveIncomegCategories = buildUpdateCellsValueRequest(
     settingsSheetId,
     coords.incomeCategories.row,
     coords.incomeCategories.column,
-    [...saveData.incomeCategories.map((category) => [category]), ...Array(100).fill([''])],
+    [...Array.from(saveData.incomeCategories), ...Array(100).fill(['', ''])],
   );
+
   const setStatusToActive = buildUpdateCellsValueRequest(settingsSheetId, coords.status.row, coords.status.column, [
     ['active'],
   ]);
@@ -56,19 +59,24 @@ export const fetchSettingsFromSpreadsheet = async (context: SpreadsheetContext):
   const currencyCode = typeof currencyCell === 'string' ? currencyCell : CURRENCIES[0].code;
   const currency = getCurrencyByCode(currencyCode) || CURRENCIES[0];
 
-  const spendingCategories: string[] = [];
-  const incomeCategories: string[] = [];
+  const spendingCategories: Map<string, string> = new Map();
+  const incomeCategories: Map<string, string> = new Map();
 
   rows.slice(coords.spendingCategories.row).forEach((row) => {
-    const spendingCategory = row[coords.spendingCategories.column];
-    const incomeCategory = row[coords.incomeCategories.column];
+    const spendingColumn = coords.spendingCategories.column;
+    const incomeColumn = coords.incomeCategories.column;
+
+    const spendingCategory = row[spendingColumn];
+    const spendingGoal = row[spendingColumn + 1] || '';
+    const incomeCategory = row[incomeColumn];
+    const incomeGoal = row[incomeColumn + 1] || '';
 
     if (typeof spendingCategory === 'string' && spendingCategory) {
-      spendingCategories.push(spendingCategory);
+      spendingCategories.set(spendingCategory, `${spendingGoal}`);
     }
 
     if (typeof incomeCategory === 'string' && incomeCategory) {
-      incomeCategories.push(incomeCategory);
+      incomeCategories.set(incomeCategory, `${incomeGoal}`);
     }
   });
 

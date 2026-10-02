@@ -12,7 +12,7 @@ import { useCurrentFinanceStore } from '../stores/financeStoreRegistry';
 import { SessionStatus } from '../types/auth';
 
 const financeStore = useCurrentFinanceStore();
-const { spendingCategories, incomeCategories } = storeToRefs(financeStore);
+const { spendingCategoriesTitles, incomeCategoriesTitles } = storeToRefs(financeStore);
 
 const googleStore = useGoogleStore();
 
@@ -25,7 +25,7 @@ const form = reactive<TransactionFormData>({
 });
 
 const options = computed<string[]>(() =>
-  form.type === TransactionTypes.SPENDING ? spendingCategories.value : incomeCategories.value,
+  form.type === TransactionTypes.SPENDING ? spendingCategoriesTitles.value : incomeCategoriesTitles.value,
 );
 
 const changeTransactionType = (type: TransactionFormData['type']) => {

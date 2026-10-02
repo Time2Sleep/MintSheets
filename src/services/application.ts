@@ -59,7 +59,7 @@ export const initializeUserSession = async (token: string) => {
 
     if (spreadsheetStatus === SpreadsheetStatus.DRAFT) {
       googleStore.setStatus(SessionStatus.READY);
-      router.push({ name: 'settings' });
+      router.push({ name: 'onboarding' });
 
       return;
     }
