@@ -55,7 +55,7 @@ const isNextDisabled = () => {
   if (step.required) {
     switch (currentStep.value) {
       case 0:
-        return +settings.balance < 0 || !settings.currency;
+        return settings.balance === '' || +settings.balance < 0 || !settings.currency;
       case 1:
         return Object.keys(settings.spendingCategories).length === 0;
       case 3:
