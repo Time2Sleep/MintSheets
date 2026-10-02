@@ -27,12 +27,12 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const initialBalance = ref<number>(0);
       const transactions = ref<Transaction[]>([]);
       const pendingTransactions = ref<Transaction[]>([]);
-      const spendingCategories = ref<Map<string, string>>(new Map());
-      const incomeCategories = ref<Map<string, string>>(new Map());
+      const spendingCategories = ref<Record<string, string>>({});
+      const incomeCategories = ref<Record<string, string>>({});
       const currency = ref<Currency>(CURRENCIES[0]);
 
-      const spendingCategoriesTitles = computed<string[]>(() => Array.from(spendingCategories.value.keys()));
-      const incomeCategoriesTitles = computed<string[]>(() => Array.from(incomeCategories.value.keys()));
+      const spendingCategoriesTitles = computed<string[]>(() => Object.keys(spendingCategories.value));
+      const incomeCategoriesTitles = computed<string[]>(() => Object.keys(incomeCategories.value));
 
       const updateContext = (newContext: SpreadsheetContext) => {
         context = newContext;

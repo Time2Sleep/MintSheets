@@ -16,14 +16,18 @@ const { spendingCategories, incomeCategories, currency, initialBalance } = store
 const { saveSettings } = financeStore;
 
 const form = reactive({
-  spendingCategories: new Map([...spendingCategories.value]),
-  incomeCategories: new Map([...incomeCategories.value]),
+  spendingCategories: { ...spendingCategories.value },
+  incomeCategories: { ...incomeCategories.value },
   balance: initialBalance.value.toString(),
   currency: currency.value,
 });
 
 const isContinueDisabled = computed<boolean>(
-  () => !form.spendingCategories.size || !form.incomeCategories.size || !form.currency || form.balance === '',
+  () =>
+    !Object.keys(form.spendingCategories).length ||
+    !Object.keys(form.incomeCategories).length ||
+    !form.currency ||
+    +form.balance < 0,
 );
 
 const isError = ref<boolean>(false);
@@ -62,24 +66,24 @@ const handleSubmit = async () => {
         />
 
         <EditableList
-          :model-value="Array.from(form.spendingCategories.keys())"
+          :model-value="Object.keys(form.spendingCategories)"
           placeholder="Food"
           label="Spending categories"
           name="spendingCategories"
           empty-text="Add at least one spending category"
           max-height="20vh"
-          @on-add="(value) => form.spendingCategories.set(value, '')"
-          @on-delete="(value) => form.spendingCategories.delete(value)"
+          @on-add="(value) => (form.spendingCategories[value] = '')"
+          @on-delete="(value) => delete form.spendingCategories[value]"
         />
         <EditableList
-          :model-value="Array.from(form.incomeCategories.keys())"
+          :model-value="Object.keys(form.incomeCategories)"
           placeholder="Salary"
           label="Income categories"
           name="incomeCategories"
           empty-text="Add at least one income category"
           max-height="20vh"
-          @on-add="(value) => form.incomeCategories.set(value, '')"
-          @on-delete="(value) => form.incomeCategories.delete(value)"
+          @on-add="(value) => (form.incomeCategories[value] = '')"
+          @on-delete="(value) => delete form.incomeCategories[value]"
         />
 
         <BaseButton :disabled="isContinueDisabled || isLoading" class="mt-4">Continue</BaseButton>

@@ -42,8 +42,8 @@ const currentStep = ref(0);
 const settings = reactive({
   balance: '',
   currency: CURRENCIES[0],
-  spendingCategories: new Map<string, string>(),
-  incomeCategories: new Map<string, string>(),
+  spendingCategories: {} as Record<string, string>,
+  incomeCategories: {} as Record<string, string>,
 });
 
 const isLoading = ref<boolean>(false);
@@ -55,11 +55,11 @@ const isNextDisabled = () => {
   if (step.required) {
     switch (currentStep.value) {
       case 0:
-        return !settings.balance || !settings.currency;
+        return +settings.balance < 0 || !settings.currency;
       case 1:
-        return settings.spendingCategories.size === 0;
+        return Object.keys(settings.spendingCategories).length === 0;
       case 3:
-        return settings.incomeCategories.size === 0;
+        return Object.keys(settings.incomeCategories).length === 0;
     }
   }
 
@@ -116,18 +116,18 @@ const handleFinish = async () => {
 
     <WrapperContainer v-else-if="currentStep === 1" class="flex-grow overflow-y-hidden" :gap="2">
       <EditableList
-        :model-value="Array.from(settings.spendingCategories.keys())"
+        :model-value="Object.keys(settings.spendingCategories)"
         placeholder="Food"
         name="spendingCategories"
         empty-text="Add at least one spending category"
         max-height="calc(100% - 60px)"
-        @on-add="(value) => settings.spendingCategories.set(value, '')"
-        @on-delete="(value) => settings.spendingCategories.delete(value)"
+        @on-add="(value) => (settings.spendingCategories[value] = '')"
+        @on-delete="(value) => delete settings.spendingCategories[value]"
       />
     </WrapperContainer>
 
     <WrapperContainer v-else-if="currentStep === 2" :gap="2" class="flex-grow overflow-y-auto">
-      <div v-for="[category, goal] in settings.spendingCategories" :key="category" class="flex gap-2 items-center">
+      <div v-for="(goal, category) in settings.spendingCategories" :key="category" class="flex gap-2 items-center">
         <div class="flex-2 leading-none">{{ category }}</div>
         <BaseInput
           :model-value="goal"
@@ -135,25 +135,25 @@ const handleFinish = async () => {
           type="number"
           placeholder="0"
           name="spendingGoals"
-          @update:model-value="(value) => settings.spendingCategories.set(category, value ? `${value}` : '')"
+          @update:model-value="(value) => (settings.spendingCategories[category] = value ? `${value}` : '')"
         />
       </div>
     </WrapperContainer>
 
     <WrapperContainer v-else-if="currentStep === 3" :gap="2" class="flex-grow overflow-y-hidden">
       <EditableList
-        :model-value="Array.from(settings.incomeCategories.keys())"
+        :model-value="Object.keys(settings.incomeCategories)"
         placeholder="Salary"
         name="incomeCategories"
         empty-text="Add at least one income category"
         max-height="20vh"
-        @on-add="(value) => settings.incomeCategories.set(value, '')"
-        @on-delete="(value) => settings.incomeCategories.delete(value)"
+        @on-add="(value) => (settings.incomeCategories[value] = '')"
+        @on-delete="(value) => delete settings.incomeCategories[value]"
       />
     </WrapperContainer>
 
     <WrapperContainer v-else-if="currentStep === 4" :gap="2" class="flex-grow overflow-y-auto">
-      <div v-for="[category, goal] in settings.incomeCategories" :key="category" class="flex gap-2 items-center">
+      <div v-for="(goal, category) in settings.incomeCategories" :key="category" class="flex gap-2 items-center">
         <div class="flex-2 leading-none">{{ category }}</div>
         <BaseInput
           :model-value="goal"
@@ -161,7 +161,7 @@ const handleFinish = async () => {
           type="number"
           placeholder="0"
           name="incomeGoals"
-          @update:model-value="(value) => settings.incomeCategories.set(category, value ? `${value}` : '')"
+          @update:model-value="(value) => (settings.incomeCategories[category] = value ? `${value}` : '')"
         />
       </div>
     </WrapperContainer>

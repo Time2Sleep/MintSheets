@@ -54,15 +54,13 @@ const getStyle = computed(() => {
   </div>
 
   <div v-if="!list?.length && emptyText" class="px-2 text-sm">{{ emptyText }}</div>
-  <div v-if="list?.length" class="px-2 overflow-y-auto" :style="getStyle">
-    <div ref="scrollableList">
-      <div v-for="(item, index) in list" :key="item" class="my-3 flex gap-3 items-center">
-        <BaseButton type="button" :aria-label="`Remove ${item}`" class="!p-1" @click="removeItem(item)">
-          <BaseIcon icon="crest" size="16px" />
-        </BaseButton>
+  <div v-if="list?.length" ref="scrollableList" class="px-2 overflow-y-auto" :style="getStyle">
+    <div v-for="(item, index) in list" :key="item" class="my-3 flex gap-3 items-center">
+      <BaseButton type="button" :aria-label="`Remove ${item}`" class="!p-1" @click="removeItem(item)">
+        <BaseIcon icon="crest" size="16px" />
+      </BaseButton>
 
-        <div class="leading-none">{{ index + 1 }}. {{ item }}</div>
-      </div>
+      <div class="leading-none">{{ index + 1 }}. {{ item }}</div>
     </div>
   </div>
 </template>

@@ -32,6 +32,6 @@ export const routes = [
     path: '/onboarding',
     name: 'onboarding',
     component: OnboardingView,
-    meta: { requiresAuth: true, title: 'Onboarding' },
+    meta: { requiresAuth: true, title: 'Onboarding', draftOnly: true },
   },
 ];

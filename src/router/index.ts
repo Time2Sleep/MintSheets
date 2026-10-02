@@ -3,6 +3,7 @@ import { useGoogleStore } from '../stores/google';
 import { storeToRefs } from 'pinia';
 import { routes } from './routes';
 import { SessionStatus } from '../types/auth';
+import { SpreadsheetStatus } from '../types/spreadsheet';
 
 export const router = createRouter({
   history: createWebHistory('/MintSheets/'),
@@ -19,6 +20,8 @@ router.beforeEach((to) => {
     !(sessionStatus.value === SessionStatus.READY || sessionStatus.value === SessionStatus.OFFLINE)
   ) {
     return { name: 'auth' };
+  } else if (to.meta.draftOnly && googleStore.spreadsheetStatus !== SpreadsheetStatus.DRAFT) {
+    return { name: 'main' };
   } else if (to.name === 'auth' && sessionStatus.value === SessionStatus.READY) {
     return { name: 'main' };
   }

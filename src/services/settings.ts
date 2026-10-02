@@ -25,14 +25,14 @@ export const saveSettingsToSpreadsheet = async (
     settingsSheetId,
     coords.spendingCategories.row,
     coords.spendingCategories.column,
-    [...Array.from(saveData.spendingCategories), ...Array(100).fill(['', ''])],
+    [...Object.entries(saveData.spendingCategories), ...Array(100).fill(['', ''])],
   );
 
   const saveIncomegCategories = buildUpdateCellsValueRequest(
     settingsSheetId,
     coords.incomeCategories.row,
     coords.incomeCategories.column,
-    [...Array.from(saveData.incomeCategories), ...Array(100).fill(['', ''])],
+    [...Object.entries(saveData.incomeCategories), ...Array(100).fill(['', ''])],
   );
 
   const setStatusToActive = buildUpdateCellsValueRequest(settingsSheetId, coords.status.row, coords.status.column, [
@@ -59,8 +59,8 @@ export const fetchSettingsFromSpreadsheet = async (context: SpreadsheetContext):
   const currencyCode = typeof currencyCell === 'string' ? currencyCell : CURRENCIES[0].code;
   const currency = getCurrencyByCode(currencyCode) || CURRENCIES[0];
 
-  const spendingCategories: Map<string, string> = new Map();
-  const incomeCategories: Map<string, string> = new Map();
+  const spendingCategories: Record<string, string> = {};
+  const incomeCategories: Record<string, string> = {};
 
   rows.slice(coords.spendingCategories.row).forEach((row) => {
     const spendingColumn = coords.spendingCategories.column;
@@ -72,11 +72,11 @@ export const fetchSettingsFromSpreadsheet = async (context: SpreadsheetContext):
     const incomeGoal = row[incomeColumn + 1] || '';
 
     if (typeof spendingCategory === 'string' && spendingCategory) {
-      spendingCategories.set(spendingCategory, `${spendingGoal}`);
+      spendingCategories[spendingCategory] = `${spendingGoal}`;
     }
 
     if (typeof incomeCategory === 'string' && incomeCategory) {
-      incomeCategories.set(incomeCategory, `${incomeGoal}`);
+      incomeCategories[incomeCategory] = `${incomeGoal}`;
     }
   });
 

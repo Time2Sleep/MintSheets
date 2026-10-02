@@ -56,6 +56,7 @@ export const initializeUserSession = async (token: string) => {
     googleStore.setSheetsIDs(sheets);
 
     const spreadsheetStatus = await getSpreadsheetStatus(spreadsheetId);
+    googleStore.spreadsheetStatus = spreadsheetStatus;
 
     if (spreadsheetStatus === SpreadsheetStatus.DRAFT) {
       googleStore.setStatus(SessionStatus.READY);
