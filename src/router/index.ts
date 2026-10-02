@@ -20,6 +20,8 @@ router.beforeEach((to) => {
     !(sessionStatus.value === SessionStatus.READY || sessionStatus.value === SessionStatus.OFFLINE)
   ) {
     return { name: 'auth' };
+  } else if (googleStore.spreadsheetStatus === SpreadsheetStatus.DRAFT && to.name !== 'onboarding') {
+    return { name: 'onboarding' };
   } else if (to.meta.draftOnly && googleStore.spreadsheetStatus !== SpreadsheetStatus.DRAFT) {
     return { name: 'main' };
   } else if (to.name === 'auth' && sessionStatus.value === SessionStatus.READY) {

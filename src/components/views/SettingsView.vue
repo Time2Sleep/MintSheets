@@ -27,6 +27,7 @@ const isContinueDisabled = computed<boolean>(
     !Object.keys(form.spendingCategories).length ||
     !Object.keys(form.incomeCategories).length ||
     !form.currency ||
+    form.balance === '' ||
     +form.balance < 0,
 );
 
