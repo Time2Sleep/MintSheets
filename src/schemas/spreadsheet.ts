@@ -38,6 +38,17 @@ export const SPREADSHEET_SCHEMA = {
         { value: 'Comment:', format: { bold: true } },
       ],
     ],
+    columns: {
+      ID: 'A',
+      Date: 'B',
+      Type: 'C',
+      Category: 'D',
+      Amount: 'E',
+      Comment: 'F',
+    },
+    coords: {
+      transactions: { row: 1, column: 0 },
+    },
     ranges: {
       transactions: 'A2:F',
     },
@@ -48,6 +59,7 @@ export const SPREADSHEET_SCHEMA = {
       [],
       [
         { value: 'Spending', format: { bold: true } },
+        { value: 'Plan', format: { bold: true } },
         { value: 'Average', format: { bold: true } },
         { value: 'January', format: { bold: true } },
         { value: 'February', format: { bold: true } },
@@ -65,72 +77,47 @@ export const SPREADSHEET_SCHEMA = {
       ],
     ],
     coords: {
-      categories: { row: 3, column: 0 },
+      categories: { row: 2, column: 0 },
     },
-    gapBetweenCategories: 2, // 2 = 1 empty line + 1 header line
-    ranges: {
-      january: 'C',
-      december: 'N',
-      sum: '$E$2:$E',
-      month: '$B$2:$B',
-      year: '$B$2:$B',
-      category: '$D$2:$D',
-      type: '$C$2:$C',
+    titles: {
+      income: { value: 'Income', format: { bold: true } },
+    },
+    gaps: {
+      blocks: 3,
+    },
+    columns: {
+      categories: 'A',
+      plan: 'B',
+      average: 'C',
+      january: 'D',
+      december: 'O',
+      annual: 'P',
+      count: 15, // 1 average + 1 plan + 12 months + 1 annual
     },
     borders: {
-      header: {
-        range: 'A2:B2',
+      leftPart: {
         top: 'SOLID',
         left: 'SOLID',
         bottom: 'SOLID',
         right: 'DOUBLE',
       },
       months: {
-        range: 'C2:N2',
         top: 'SOLID',
         bottom: 'SOLID',
       },
       annual: {
-        range: 'O2:O2',
         top: 'SOLID',
         bottom: 'SOLID',
         right: 'SOLID',
         left: 'DOUBLE',
       },
-      spendingCategories: {
-        range: 'A3:B',
+      categories: {
         right: 'DOUBLE',
         left: 'SOLID',
         bottom: 'SOLID',
       },
-      incomeCategories: {
-        range: 'A',
-        right: 'DOUBLE',
-        left: 'SOLID',
-        bottom: 'SOLID',
+      total: {
         top: 'SOLID',
-      },
-      monthsSpendingValues: {
-        range: 'C3:N',
-        bottom: 'SOLID',
-      },
-      monthsIncomeValues: {
-        range: 'C',
-        top: 'SOLID',
-        bottom: 'SOLID',
-      },
-      annualSpendingValues: {
-        range: 'O3:O',
-        right: 'SOLID',
-        bottom: 'SOLID',
-        left: 'DOUBLE',
-      },
-      annualIncomeValues: {
-        range: 'O',
-        top: 'SOLID',
-        right: 'SOLID',
-        bottom: 'SOLID',
-        left: 'DOUBLE',
       },
     },
   },

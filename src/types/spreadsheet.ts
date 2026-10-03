@@ -46,6 +46,8 @@ export interface GetSheetPropertiesResponse {
   sheets: { properties: SheetProperties }[];
 }
 
+export type CellNumberFormat = 'TEXT' | 'DATE' | 'NUMBER' | 'PERCENT';
+
 export interface SheetsCellData {
   userEnteredValue: {
     stringValue?: string;
@@ -54,7 +56,7 @@ export interface SheetsCellData {
   };
   userEnteredFormat?: {
     numberFormat?: {
-      type: 'TEXT' | 'DATE' | 'NUMBER';
+      type: CellNumberFormat;
       pattern?: string;
     };
     textFormat?: {
@@ -95,9 +97,10 @@ export type RawCellValue =
       value: string | number;
       format?: {
         bold?: boolean;
-        date?: boolean;
         formula?: boolean;
+        numberFormat?: CellNumberFormat;
       };
+      pattern?: string;
     };
 
 export interface GridRange {

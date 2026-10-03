@@ -1,22 +1,13 @@
 import type { GridRange, RawCellValue, SheetsCellData, SheetsRowData } from '../types/spreadsheet';
-import { buildBoldCell, buildCell, buildFormula } from './requestsFactory';
+import { buildFormula, applyCellFormat } from './spreadsheet';
 
 export const toSheetsRowData = (data: readonly RawCellValue[]): SheetsRowData => {
   const values: SheetsCellData[] = data.reduce((acc, cell) => {
-    if (typeof cell === 'object') {
-      if (cell.format?.formula && typeof cell.value === 'string') {
-        return [...acc, buildFormula(cell.value)];
-      }
-
-      const value = cell.format?.bold ? buildBoldCell(cell.value) : buildCell(cell.value);
-      if (cell.format?.date) {
-        value.userEnteredFormat = { numberFormat: { type: 'DATE', pattern: 'yyyy-MM-dd' } };
-      }
-
-      return [...acc, value];
+    if (typeof cell === 'object' && cell.format?.formula && typeof cell.value === 'string') {
+      return [...acc, buildFormula(cell)];
     }
 
-    return [...acc, buildCell(cell)];
+    return [...acc, applyCellFormat(cell)];
   }, [] as SheetsCellData[]);
 
   return { values };
@@ -30,6 +21,18 @@ export const columnToIndex = (column: string): number => {
   }
 
   return index - 1;
+};
+
+export const indexToColumn = (index: number): string => {
+  let column = '';
+  let currentIndex = index + 1;
+
+  while (currentIndex > 0) {
+    const remainder = (currentIndex - 1) % 26;
+    column = String.fromCharCode(65 + remainder) + column;
+    currentIndex = Math.floor((currentIndex - 1) / 26);
+  }
+  return column;
 };
 
 const parseA1Cell = (cell: string) => {

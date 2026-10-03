@@ -2,13 +2,15 @@ import { batchUpdateSpreadsheet } from '../api/sheets';
 import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 import { TransactionTypes, type TransactionType } from '../types/finances';
 import type { RawCellValue, SpreadsheetUpdateBordersRequest } from '../types/spreadsheet';
+import { indexToColumn } from '../utils/convert';
 import { buildUpdateBordersRequest, buildUpdateCellsValueRequest } from '../utils/requestsFactory';
+import { buildOtherSheetRange } from '../utils/spreadsheet';
 import { createSpreadsheetTab, deleteSpreadsheetTab } from './spreadsheet';
 
 export const initYear = async (
   spreadsheetId: string,
   year: number,
-  categories: { spending: string[]; income: string[] },
+  categories: { spending: Record<string, string>; income: Record<string, string> },
 ): Promise<number | null> => {
   let tabId;
 
@@ -42,57 +44,115 @@ const configureYearTab = async (
   tabId: number,
   spreadsheetId: string,
   year: number,
-  categories: { spending: string[]; income: string[] },
+  categories: { spending: Record<string, string>; income: Record<string, string> },
 ) => {
   const yearSchema = SPREADSHEET_SCHEMA.yearTab;
 
-  const spendingCategoriesRows = categories.spending.map((category, index) => {
+  const spendingCategoriesRows = Object.entries(categories.spending).map((category, index) => {
     const rowIndex = index + yearSchema.coords.categories.row;
     return buildCategoryRow(category, rowIndex, year, TransactionTypes.SPENDING);
   });
 
-  const incomeTitle = { value: 'Income', format: { bold: true } };
+  const spendingSummaryRow = buildSummaryRow(
+    'Spending total',
+    Object.keys(categories.spending).length,
+    yearSchema.coords.categories.row,
+  );
 
-  const incomeCategoriesRows = categories.income.map((category, index) => {
-    const rowIndex =
-      index + yearSchema.coords.categories.row + spendingCategoriesRows.length + yearSchema.gapBetweenCategories;
+  const incomeCategoriesRows = Object.entries(categories.income).map((category, index) => {
+    const rowIndex = index + yearSchema.coords.categories.row + spendingCategoriesRows.length + yearSchema.gaps.blocks;
     return buildCategoryRow(category, rowIndex, year, TransactionTypes.INCOME);
   });
+
+  const incomeSummaryRow = buildSummaryRow(
+    'Income total',
+    Object.keys(categories.income).length,
+    yearSchema.coords.categories.row + spendingCategoriesRows.length + yearSchema.gaps.blocks,
+  );
+
+  const spendingsTotalIndex = Object.keys(categories.spending).length + yearSchema.coords.categories.row + 1;
+  const incomeTotalIndex =
+    Object.keys(categories.income).length +
+    yearSchema.coords.categories.row +
+    spendingCategoriesRows.length +
+    yearSchema.gaps.blocks +
+    1;
+  const differenceRows = buildDifferenceRows(spendingsTotalIndex, incomeTotalIndex);
 
   await batchUpdateSpreadsheet(spreadsheetId, [
     buildUpdateCellsValueRequest(tabId, 0, 0, [
       ...yearSchema.initialRows,
       ...spendingCategoriesRows,
+      spendingSummaryRow,
       [''], //empty line between spending and income
-      [incomeTitle],
+      [yearSchema.titles.income],
       ...incomeCategoriesRows,
+      incomeSummaryRow,
+      [''], //empty line between income and difference
+      ...differenceRows,
     ]),
-    ...buildBordersRequests(tabId, categories.spending.length, categories.income.length).map((request) => ({
-      ...request,
-    })),
+    ...buildBordersRequests(tabId, Object.keys(categories.spending).length, Object.keys(categories.income).length).map(
+      (request) => ({
+        ...request,
+      }),
+    ),
   ]);
 };
 
-const buildCategoryRow = (category: string, rowIndex: number, year: number, type: TransactionType): RawCellValue[] => {
+const buildCategoryRow = (
+  [categoryName, goal]: [string, string],
+  rowIndex: number,
+  year: number,
+  type: TransactionType,
+): RawCellValue[] => {
   const yearSchema = SPREADSHEET_SCHEMA.yearTab;
-  const { ranges } = yearSchema;
-  const transactionsTabName = SPREADSHEET_SCHEMA.transactionsTab.title;
+  const { columns } = yearSchema;
+
+  const transactionsSchema = SPREADSHEET_SCHEMA.transactionsTab;
+  const { title: transactionsTabName, columns: transactionColumns, coords: transactionCoords } = transactionsSchema;
+
+  const categoryGoal = Number.isFinite(Number(goal)) ? Number(goal) : 0;
   const average = {
-    value: `=IFERROR(AVERAGE(${ranges.january}${rowIndex}:${ranges.december}${rowIndex}), 0)`,
+    value: `=IFERROR(AVERAGE(${columns.january}${rowIndex}:${columns.december}${rowIndex}), 0)`,
     format: { formula: true },
   };
-  const row = [category, average];
+  const row = [categoryName, categoryGoal, average];
 
   //12 months
   for (let monthIndex = 1; monthIndex <= 12; monthIndex++) {
-    const getSum = `${transactionsTabName}'!${ranges.sum}`;
-    const checkMonth = `--(MONTH('${transactionsTabName}'!${ranges.month})=${monthIndex})`;
-    const checkYear = `--(YEAR('${transactionsTabName}'!${ranges.year})=${year})`;
-    const checkCategory = `--(('${transactionsTabName}'!${ranges.category})=$A${rowIndex})`;
-    const checkType = `--(('${transactionsTabName}'!${ranges.type})="${type}")`;
+    const transactionAmount = buildOtherSheetRange(
+      transactionsTabName,
+      transactionColumns.Amount,
+      transactionCoords.transactions.row,
+      transactionColumns.Amount,
+    );
+    const transactionDate = buildOtherSheetRange(
+      transactionsTabName,
+      transactionColumns.Date,
+      transactionCoords.transactions.row,
+      transactionColumns.Date,
+    );
+    const monthCondition = `--(MONTH(${transactionDate})=${monthIndex})`;
+    const yearCondition = `--(YEAR(${transactionDate})=${year})`;
+
+    const transactionCategory = buildOtherSheetRange(
+      transactionsTabName,
+      transactionColumns.Category,
+      transactionCoords.transactions.row,
+      transactionColumns.Category,
+    );
+    const categoryCondition = `--((${transactionCategory})="${categoryName}")`;
+
+    const transactionType = buildOtherSheetRange(
+      transactionsTabName,
+      transactionColumns.Type,
+      transactionCoords.transactions.row,
+      transactionColumns.Type,
+    );
+    const typeCondition = `--((${transactionType})="${type}")`;
 
     const formula = {
-      value: `=SUMPRODUCT('${getSum},${checkMonth},${checkYear},${checkCategory},${checkType})`,
+      value: `=SUMPRODUCT(${transactionAmount},${monthCondition},${yearCondition},${categoryCondition},${typeCondition})`,
       format: { formula: true },
     };
 
@@ -100,7 +160,7 @@ const buildCategoryRow = (category: string, rowIndex: number, year: number, type
   }
 
   const annual = {
-    value: `=SUM(${ranges.january}${rowIndex}:${ranges.december}${rowIndex})`,
+    value: `=SUM(${columns.january}${rowIndex + 1}:${columns.december}${rowIndex + 1})`,
     format: { formula: true },
   };
   row.push(annual);
@@ -108,53 +168,130 @@ const buildCategoryRow = (category: string, rowIndex: number, year: number, type
   return row;
 };
 
+const buildSummaryRow = (title: string, length: number, initRowIndex: number): RawCellValue[] => {
+  const row: RawCellValue[] = [{ value: title, format: { bold: true } }];
+
+  const columnsCount = SPREADSHEET_SCHEMA.yearTab.columns.count;
+  for (let column = 1; column <= columnsCount; column++) {
+    const columnLetter = indexToColumn(column);
+    const formula = {
+      value: `=SUM(${columnLetter}${initRowIndex}:${columnLetter}${initRowIndex + length - 1})`,
+      format: { formula: true },
+    };
+    row.push(formula);
+  }
+
+  return row;
+};
+
+const buildDifferenceRows = (totalSpendingRow: number, totalIncomeRow: number): RawCellValue[][] => {
+  const differenceRow: RawCellValue[] = [{ value: 'Difference', format: { bold: true } }];
+  const savingPercentageRow: RawCellValue[] = [{ value: 'Saved, %' }];
+
+  const columnsCount = SPREADSHEET_SCHEMA.yearTab.columns.count;
+  for (let column = 1; column <= columnsCount; column++) {
+    const columnLetter = indexToColumn(column);
+
+    differenceRow.push({
+      value: `=${columnLetter}${totalIncomeRow} - ${columnLetter}${totalSpendingRow}`,
+      format: { formula: true },
+    });
+
+    savingPercentageRow.push({
+      value: `=IFERROR((${columnLetter}${totalIncomeRow}-${columnLetter}${totalSpendingRow})/${columnLetter}${totalIncomeRow}, 0)`,
+      format: { formula: true, numberFormat: 'PERCENT' },
+      pattern: '0.00%',
+    });
+  }
+
+  return [differenceRow, savingPercentageRow];
+};
+
 const buildBordersRequests = (
   sheetId: number,
   spendingCategoriesLength: number,
   incomeCategoriesLength: number,
 ): SpreadsheetUpdateBordersRequest[] => {
-  const { borders, coords, gapBetweenCategories } = SPREADSHEET_SCHEMA.yearTab;
+  const { borders, coords, gaps, columns } = SPREADSHEET_SCHEMA.yearTab;
 
-  const headerBordersRequest = buildUpdateBordersRequest(sheetId, borders.header);
-  const monthsBordersRequest = buildUpdateBordersRequest(sheetId, borders.months);
-  const annualBordersRequest = buildUpdateBordersRequest(sheetId, borders.annual);
+  const headerRange = `${columns.categories}${coords.categories.row}:${columns.average}${coords.categories.row}`;
+  const headerBordersRequest = buildUpdateBordersRequest(sheetId, { ...borders.leftPart, range: headerRange });
 
-  const spendingCategoriesLastRowIndex = spendingCategoriesLength + coords.categories.row - 1;
+  const monthsRange = `${columns.january}${coords.categories.row}:${columns.december}${coords.categories.row}`;
+  const monthsBordersRequest = buildUpdateBordersRequest(sheetId, { ...borders.months, range: monthsRange });
+
+  const annualRange = `${columns.annual}${coords.categories.row}:${columns.annual}${coords.categories.row}`;
+  const annualBordersRequest = buildUpdateBordersRequest(sheetId, { ...borders.annual, range: annualRange });
+
+  const spendingCategoriesLastRowIndex = spendingCategoriesLength + coords.categories.row + 1;
+  const spendingCategoriesRange = `${columns.categories}${coords.categories.row + 1}:${columns.average}${spendingCategoriesLastRowIndex}`;
   const spendingCategoriesBordersRequest = buildUpdateBordersRequest(sheetId, {
-    ...borders.spendingCategories,
-    range: borders.spendingCategories.range + spendingCategoriesLastRowIndex,
+    ...borders.categories,
+    range: spendingCategoriesRange,
   });
 
-  const incomeCategoriesFirstRowIndex = gapBetweenCategories + spendingCategoriesLastRowIndex + 1;
-  const incomeCategoriesLastRowIndex = incomeCategoriesLength + incomeCategoriesFirstRowIndex - 1;
-  const incomeCategoriesLastColumn = borders.spendingCategories.range.split(':')[1];
-  const incomeCategoriesRange = `${borders.incomeCategories.range}${incomeCategoriesFirstRowIndex}:${incomeCategoriesLastColumn}${incomeCategoriesLastRowIndex}`;
+  const totalSpendingRange = `${columns.categories}${spendingCategoriesLastRowIndex}:${columns.annual}${spendingCategoriesLastRowIndex + 1}`;
+  const totalSpendingBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.total,
+    range: totalSpendingRange,
+  });
+
+  const incomeCategoriesFirstRowIndex = gaps.blocks + spendingCategoriesLastRowIndex;
+  const incomeCategoriesLastRowIndex = incomeCategoriesLength + incomeCategoriesFirstRowIndex;
+  const incomeCategoriesRange = `${columns.categories}${incomeCategoriesFirstRowIndex}:${columns.average}${incomeCategoriesLastRowIndex}`;
   const incomeCategoriesBordersRequest = buildUpdateBordersRequest(sheetId, {
-    ...borders.incomeCategories,
+    ...borders.leftPart,
     range: incomeCategoriesRange,
   });
 
-  const monthsSpendingValuesBordersRequest = buildUpdateBordersRequest(sheetId, {
-    ...borders.monthsSpendingValues,
-    range: borders.monthsSpendingValues.range + spendingCategoriesLastRowIndex,
+  const totalIncomeRange = `${columns.categories}${incomeCategoriesLastRowIndex}:${columns.annual}${incomeCategoriesLastRowIndex + 1}`;
+  const totalIncomeBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.total,
+    range: totalIncomeRange,
   });
 
-  const monthsIncomeValuesLastColumn = borders.monthsSpendingValues.range.split(':')[1];
-  const monthsIncomeValuesRange = `${borders.monthsIncomeValues.range}${incomeCategoriesFirstRowIndex}:${monthsIncomeValuesLastColumn}${incomeCategoriesLastRowIndex}`;
+  const monthsSpendingRange = `${columns.january}${coords.categories.row + 1}:${columns.december}${spendingCategoriesLastRowIndex}`;
+  const monthsSpendingValuesBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.months,
+    range: monthsSpendingRange,
+  });
+
+  const monthsIncomeValuesRange = `${columns.january}${incomeCategoriesFirstRowIndex}:${columns.december}${incomeCategoriesLastRowIndex}`;
   const monthsIncomeValuesBordersRequest = buildUpdateBordersRequest(sheetId, {
-    ...borders.monthsIncomeValues,
+    ...borders.months,
     range: monthsIncomeValuesRange,
   });
 
+  const annualSpendingRange = `${columns.annual}${coords.categories.row + 1}:${columns.annual}${spendingCategoriesLastRowIndex}`;
   const annualSpendingValuesBordersRequest = buildUpdateBordersRequest(sheetId, {
-    ...borders.annualSpendingValues,
-    range: borders.annualSpendingValues.range + spendingCategoriesLastRowIndex,
+    ...borders.annual,
+    range: annualSpendingRange,
   });
 
-  const annualIncomeValuesRange = `${borders.annualIncomeValues.range}${incomeCategoriesFirstRowIndex}:${borders.annualIncomeValues.range}${incomeCategoriesLastRowIndex}`;
+  const annualIncomeValuesRange = `${columns.annual}${incomeCategoriesFirstRowIndex}:${columns.annual}${incomeCategoriesLastRowIndex}`;
   const annualIncomeValuesBordersRequest = buildUpdateBordersRequest(sheetId, {
-    ...borders.annualIncomeValues,
+    ...borders.annual,
     range: annualIncomeValuesRange,
+  });
+
+  const differenceRowsFirstRowIndex = incomeCategoriesLastRowIndex + gaps.blocks - 1;
+  const differenceRowsLastRowIndex = differenceRowsFirstRowIndex + 1;
+  const differenceCategoriesRange = `${columns.categories}${differenceRowsFirstRowIndex}:${columns.average}${differenceRowsLastRowIndex}`;
+  const differenceCategoriesBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.leftPart,
+    range: differenceCategoriesRange,
+  });
+
+  const differenceMonthsRange = `${columns.january}${differenceRowsFirstRowIndex}:${columns.december}${differenceRowsLastRowIndex}`;
+  const differenceMonthsBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.months,
+    range: differenceMonthsRange,
+  });
+
+  const differenceAnnualRange = `${columns.annual}${differenceRowsFirstRowIndex}:${columns.annual}${differenceRowsLastRowIndex}`;
+  const differenceAnnualBordersRequest = buildUpdateBordersRequest(sheetId, {
+    ...borders.annual,
+    range: differenceAnnualRange,
   });
 
   return [
@@ -162,10 +299,15 @@ const buildBordersRequests = (
     monthsBordersRequest,
     annualBordersRequest,
     spendingCategoriesBordersRequest,
+    totalSpendingBordersRequest,
+    totalIncomeBordersRequest,
     incomeCategoriesBordersRequest,
     monthsSpendingValuesBordersRequest,
     monthsIncomeValuesBordersRequest,
     annualSpendingValuesBordersRequest,
     annualIncomeValuesBordersRequest,
+    differenceCategoriesBordersRequest,
+    differenceMonthsBordersRequest,
+    differenceAnnualBordersRequest,
   ];
 };
