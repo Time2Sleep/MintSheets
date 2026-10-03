@@ -176,7 +176,7 @@ const buildSummaryRow = (title: string, length: number, initRowIndex: number): R
   for (let column = 1; column <= columnsCount; column++) {
     const columnLetter = indexToColumn(column);
     const formula = {
-      value: `=SUM(${columnLetter}${initRowIndex}:${columnLetter}${initRowIndex + length - 1})`,
+      value: `=SUM(${columnLetter}${initRowIndex + 1}:${columnLetter}${initRowIndex + length})`,
       format: { formula: true },
     };
     row.push(formula);
