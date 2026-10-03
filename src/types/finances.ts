@@ -28,13 +28,13 @@ export type TransactionFormData = {
 export interface SpreadsheetSettings {
   balance: number;
   currency: Currency;
-  spendingCategories: string[];
-  incomeCategories: string[];
+  spendingCategories: Record<string, string>;
+  incomeCategories: Record<string, string>;
 }
 
 export interface SpreadsheetSettingsFormData {
   balance: string;
   currency: string;
-  incomeCategories: string[];
-  spendingCategories: string[];
+  incomeCategories: Record<string, string>;
+  spendingCategories: Record<string, string>;
 }

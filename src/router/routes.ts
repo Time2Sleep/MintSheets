@@ -2,6 +2,7 @@ import AuthView from '../components/views/AuthView.vue';
 import MainView from '../components/views/MainView.vue';
 import AnalyticsView from '../components/views/AnalyticsView.vue';
 import SettingsView from '../components/views/SettingsView.vue';
+import OnboardingView from '../components/views/OnboardingView.vue';
 
 export const routes = [
   {
@@ -26,5 +27,11 @@ export const routes = [
     name: 'settings',
     component: SettingsView,
     meta: { requiresAuth: true, title: 'Settings' },
+  },
+  {
+    path: '/onboarding',
+    name: 'onboarding',
+    component: OnboardingView,
+    meta: { requiresAuth: true, title: 'Onboarding', draftOnly: true },
   },
 ];

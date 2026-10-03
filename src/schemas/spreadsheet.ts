@@ -13,14 +13,14 @@ export const SPREADSHEET_SCHEMA = {
       [{ value: 'Categories:', format: { bold: true } }],
     ],
     ranges: {
-      read: 'A1:C',
+      read: 'A1:D',
       status: 'B1:B1',
     },
     coords: {
       status: { row: 0, column: 1 },
       balance: { row: 2, column: 1 },
       spendingCategories: { row: 5, column: 0 },
-      incomeCategories: { row: 5, column: 1 },
+      incomeCategories: { row: 5, column: 2 },
       currency: { row: 2, column: 2 },
     },
   },
