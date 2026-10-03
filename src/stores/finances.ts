@@ -63,8 +63,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         if (year in context.sheets) return;
 
         const yearTabId = await initYear(context.spreadsheetId, year, {
-          spending: spendingCategoriesTitles.value,
-          income: incomeCategoriesTitles.value,
+          spending: spendingCategories.value,
+          income: incomeCategories.value,
         });
 
         if (!yearTabId) return;

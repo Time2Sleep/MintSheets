@@ -1,4 +1,4 @@
-import type { RawCellValue, SchemaBorders, SheetsCellData, SpreadsheetBorders } from '../types/spreadsheet';
+import type { RawCellValue, SchemaBorders, SpreadsheetBorders } from '../types/spreadsheet';
 import { a1RangeToGridRange, toSheetsRowData } from './convert';
 
 export const buildRenameSheetRequest = (sheetId: number, newTitle: string) => ({
@@ -24,25 +24,6 @@ export const buildDeleteSheetRequest = (sheetId: number) => ({
     sheetId,
   },
 });
-
-export const buildFormula = (text: string): SheetsCellData => {
-  return {
-    userEnteredValue: { formulaValue: text },
-    userEnteredFormat: { numberFormat: { type: 'NUMBER', pattern: '0' } },
-  };
-};
-
-export const buildCell = (text: string | number): SheetsCellData => {
-  const userEnteredValue = typeof text === 'string' ? { stringValue: text } : { numberValue: text };
-
-  return { userEnteredValue };
-};
-
-export const buildBoldCell = (text: string | number): SheetsCellData => {
-  const userEnteredValue = typeof text === 'string' ? { stringValue: text } : { numberValue: text };
-
-  return { userEnteredValue, userEnteredFormat: { textFormat: { bold: true } } };
-};
 
 export const buildInsertRowRequest = (sheetId: number, startIndex: number, endIndex: number) => ({
   insertDimension: {

@@ -14,7 +14,7 @@ export const transactionToRawCellValues = ({
   comment,
 }: Transaction): RawCellValue[] => [
   id,
-  { value: stringDateToSheetDate(date), format: { date: true } },
+  { value: stringDateToSheetDate(date), format: { numberFormat: 'DATE' } },
   type,
   category,
   amount,
