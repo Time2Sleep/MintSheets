@@ -49,7 +49,7 @@ const configureYearTab = async (
   const yearSchema = SPREADSHEET_SCHEMA.yearTab;
 
   const spendingCategoriesRows = Object.entries(categories.spending).map((category, index) => {
-    const rowIndex = index + yearSchema.coords.categories.row;
+    const rowIndex = index + yearSchema.coords.categories.row + 1;
     return buildCategoryRow(category, rowIndex, year, TransactionTypes.SPENDING);
   });
 
@@ -60,7 +60,8 @@ const configureYearTab = async (
   );
 
   const incomeCategoriesRows = Object.entries(categories.income).map((category, index) => {
-    const rowIndex = index + yearSchema.coords.categories.row + spendingCategoriesRows.length + yearSchema.gaps.blocks;
+    const rowIndex =
+      index + yearSchema.coords.categories.row + spendingCategoriesRows.length + yearSchema.gaps.blocks + 1;
     return buildCategoryRow(category, rowIndex, year, TransactionTypes.INCOME);
   });
 
@@ -160,7 +161,7 @@ const buildCategoryRow = (
   }
 
   const annual = {
-    value: `=SUM(${columns.january}${rowIndex + 1}:${columns.december}${rowIndex + 1})`,
+    value: `=SUM(${columns.january}${rowIndex}:${columns.december}${rowIndex})`,
     format: { formula: true },
   };
   row.push(annual);
