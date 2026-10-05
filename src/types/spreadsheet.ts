@@ -131,6 +131,11 @@ export interface SpreadsheetBorders {
   top?: SpreadsheetCellBorder;
 }
 
-export interface SpreadsheetUpdateBordersRequest {
-  updateBorders: SpreadsheetBorders;
+export interface AnnualTabRowIndexes {
+  spendingFirst: number;
+  spendingLast: number;
+  incomeFirst: number;
+  incomeLast: number;
+  differenceFirst: number;
+  differenceLast: number;
 }
