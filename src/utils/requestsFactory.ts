@@ -1,7 +1,16 @@
+import type {
+  SpreadsheetAddSheetRequest,
+  SpreadsheetAddTableRquest,
+  SpreadsheetDeleteSheetRequest,
+  SpreadsheetInsertDimensionRequest,
+  SpreadsheetUpdateCellsValueRequest,
+  UpdateSheetPropertiesRequest,
+  UpdateSpreadsheetPropertiesRequest,
+} from '../types/requests';
 import type { RawCellValue, SchemaBorders, SpreadsheetBorders } from '../types/spreadsheet';
 import { a1RangeToGridRange, toSheetsRowData } from './convert';
 
-export const buildRenameSheetRequest = (sheetId: number, newTitle: string) => ({
+export const buildRenameSheetRequest = (sheetId: number, newTitle: string): UpdateSheetPropertiesRequest => ({
   updateSheetProperties: {
     properties: {
       sheetId,
@@ -11,7 +20,7 @@ export const buildRenameSheetRequest = (sheetId: number, newTitle: string) => ({
   },
 });
 
-export const buildAddSheetRequest = (title: string) => ({
+export const buildAddSheetRequest = (title: string): SpreadsheetAddSheetRequest => ({
   addSheet: {
     properties: {
       title,
@@ -19,13 +28,17 @@ export const buildAddSheetRequest = (title: string) => ({
   },
 });
 
-export const buildDeleteSheetRequest = (sheetId: number) => ({
+export const buildDeleteSheetRequest = (sheetId: number): SpreadsheetDeleteSheetRequest => ({
   deleteSheet: {
     sheetId,
   },
 });
 
-export const buildInsertRowRequest = (sheetId: number, startIndex: number, endIndex: number) => ({
+export const buildInsertRowRequest = (
+  sheetId: number,
+  startIndex: number,
+  endIndex: number,
+): SpreadsheetInsertDimensionRequest => ({
   insertDimension: {
     range: {
       sheetId,
@@ -42,7 +55,7 @@ export const buildUpdateCellsValueRequest = (
   rowIndex: number,
   columnIndex: number,
   rows: readonly (readonly RawCellValue[])[],
-) => ({
+): SpreadsheetUpdateCellsValueRequest => ({
   updateCells: {
     start: {
       sheetId,
@@ -61,7 +74,7 @@ export const buildConvertToTableRequest = (
   endRowIndex = 2,
   startColumnIndex = 0,
   endColumnIndex = 6,
-) => ({
+): SpreadsheetAddTableRquest => ({
   addTable: {
     table: {
       range: {
@@ -76,7 +89,7 @@ export const buildConvertToTableRequest = (
   },
 });
 
-export const buildSetSpreadsheetLocaleRequest = (locale: string) => ({
+export const buildSetSpreadsheetLocaleRequest = (locale: string): UpdateSpreadsheetPropertiesRequest => ({
   updateSpreadsheetProperties: {
     properties: {
       locale,

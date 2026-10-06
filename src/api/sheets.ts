@@ -8,6 +8,7 @@ import type {
   GoogleDriveFilesResponse,
   SpreadsheetValue,
 } from '../types/spreadsheet';
+import type { BatchUpdateRequest } from '../types/requests';
 
 export const findSpreadsheetByTitle = async (title: string): Promise<string | null> => {
   const escapedTitle = title.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -50,7 +51,7 @@ export const createSpreadsheet = async (title: string): Promise<string> => {
 
 export const batchUpdateSpreadsheet = async (
   spreadsheetId: string,
-  requests: Record<string, unknown>[],
+  requests: BatchUpdateRequest[],
 ): Promise<BatchUpdateResponse> => {
   const response = await apiClient.post<BatchUpdateResponse>(`/${spreadsheetId}:batchUpdate`, { requests });
 
