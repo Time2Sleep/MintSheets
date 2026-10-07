@@ -33,7 +33,7 @@ export const addYearToAnalyticsTab = async (
   year: string,
   rowOffset: number,
   numberOfCategories: number,
-) => {
+): Promise<boolean> => {
   const { sheets, spreadsheetId } = context;
   const { coords } = SPREADSHEET_SCHEMA.analytics;
 
@@ -46,7 +46,13 @@ export const addYearToAnalyticsTab = async (
     [yearRow],
   );
 
-  await batchUpdateSpreadsheet(spreadsheetId, [updateCellsValueRequest]);
+  try {
+    await batchUpdateSpreadsheet(spreadsheetId, [updateCellsValueRequest]);
+    return true;
+  } catch (error) {
+    console.warn('[Analitycs Service][sheet] Failed to add a year', error);
+    return false;
+  }
 };
 
 const calculateYearTotalCellRange = (numberOfCategories: number): string => {
