@@ -57,7 +57,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         }
 
         const year = transactionData.date.slice(0, 4);
-        checkYearExistanceInSpreadsheet(year);
+        await checkYearExistanceInSpreadsheet(year);
       };
 
       const checkYearExistanceInSpreadsheet = async (year: string) => {
