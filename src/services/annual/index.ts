@@ -1,21 +1,22 @@
 import { batchUpdateSpreadsheet } from '../../api/sheets';
 import { SPREADSHEET_SCHEMA } from '../../schemas/spreadsheet';
-import { TransactionTypes } from '../../types/finances';
+import { TransactionTypes, type Categories } from '../../types/finances';
 import type { AnnualTabRowIndexes } from '../../types/spreadsheet';
 import { buildUpdateCellsValueRequest } from '../../utils/requestsFactory';
-import { createSpreadsheetTab, deleteSpreadsheetTab } from '../spreadsheet';
+import { createSpreadsheetTabs, deleteSpreadsheetTab } from '../spreadsheet';
 import { buildBordersRequests } from './borders';
 import { buildCategoriesRows, buildDifferenceRows, buildSummaryRow } from './data';
 
-export const initYear = async (
+export const initYearTab = async (
   spreadsheetId: string,
-  year: number,
-  categories: { spending: Record<string, string>; income: Record<string, string> },
+  year: string,
+  categories: Categories,
 ): Promise<number | null> => {
   let tabId;
 
   try {
     tabId = await createYearTab(spreadsheetId, year);
+
     await configureYearTab(tabId, spreadsheetId, year, categories);
 
     return tabId;
@@ -34,18 +35,14 @@ export const initYear = async (
   }
 };
 
-const createYearTab = async (spreadsheetId: string, year: number): Promise<number> => {
-  if (year < 1970 || year > 3000) throw new Error('[Annual Service]: invalid year!');
+const createYearTab = async (spreadsheetId: string, year: string): Promise<number> => {
+  if (+year < 1970 || +year > 3000) throw new Error('[Annual Service]: invalid year!');
 
-  return await createSpreadsheetTab(spreadsheetId, String(year));
+  const [yearTab] = await createSpreadsheetTabs(spreadsheetId, String(year));
+  return yearTab;
 };
 
-const configureYearTab = async (
-  tabId: number,
-  spreadsheetId: string,
-  year: number,
-  categories: { spending: Record<string, string>; income: Record<string, string> },
-) => {
+const configureYearTab = async (tabId: number, spreadsheetId: string, year: string, categories: Categories) => {
   const yearSchema = SPREADSHEET_SCHEMA.yearTab;
 
   const indexes = calculateRowIndexes(categories);
@@ -77,7 +74,7 @@ const configureYearTab = async (
   const bordersRequests = buildBordersRequests(tabId, indexes);
 
   await batchUpdateSpreadsheet(spreadsheetId, [
-    buildUpdateCellsValueRequest(tabId, 0, 0, [
+    buildUpdateCellsValueRequest(tabId, yearSchema.coords.dataStart.row, yearSchema.coords.dataStart.column, [
       ...yearSchema.initialRows,
       ...spendingCategoriesRows,
       spendingSummaryRow,
@@ -92,10 +89,7 @@ const configureYearTab = async (
   ]);
 };
 
-const calculateRowIndexes = (categories: {
-  spending: Record<string, string>;
-  income: Record<string, string>;
-}): AnnualTabRowIndexes => {
+const calculateRowIndexes = (categories: Categories): AnnualTabRowIndexes => {
   const spendingCategoriesLength = Object.keys(categories.spending).length;
   const incomeCategoriesLength = Object.keys(categories.income).length;
 

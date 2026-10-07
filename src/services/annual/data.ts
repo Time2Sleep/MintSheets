@@ -7,7 +7,7 @@ import { buildOtherSheetRange } from '../../utils/spreadsheet';
 export const buildCategoriesRows = (
   categories: Record<string, string>,
   type: TransactionType,
-  year: number,
+  year: string,
   startRowIndex: number,
 ): RawCellValue[][] => {
   return Object.entries(categories).map((category, index) =>
@@ -18,7 +18,7 @@ export const buildCategoriesRows = (
 const buildCategoryRow = (
   [categoryName, goal]: readonly [string, string],
   rowIndex: number,
-  year: number,
+  year: string,
   type: TransactionType,
 ): RawCellValue[] => {
   const yearSchema = SPREADSHEET_SCHEMA.yearTab;
@@ -39,7 +39,7 @@ const buildCategoryRow = (
   return [categoryName, categoryGoal, average, ...monthsFormulas, annual];
 };
 
-const buildMonthlyFormulas = (year: number, categoryName: string, type: TransactionType): RawCellValue[] => {
+const buildMonthlyFormulas = (year: string, categoryName: string, type: TransactionType): RawCellValue[] => {
   const monthsFormulas: RawCellValue[] = [];
   const transactionsSchema = SPREADSHEET_SCHEMA.transactionsTab;
   const { title, columns, coords } = transactionsSchema;

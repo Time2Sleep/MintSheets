@@ -38,3 +38,8 @@ export interface SpreadsheetSettingsFormData {
   incomeCategories: Record<string, string>;
   spendingCategories: Record<string, string>;
 }
+
+export interface Categories {
+  spending: Record<string, string>;
+  income: Record<string, string>;
+}

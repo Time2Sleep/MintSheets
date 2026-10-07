@@ -61,3 +61,7 @@ export const a1RangeToGridRange = (range: string): Omit<GridRange, 'sheetId'> =>
     endRowIndex: end.row,
   };
 };
+
+export const coordsToA1Range = (coords: { row: number; column: number }) => {
+  return `${indexToColumn(coords.column)}${coords.row + 1}`;
+};
