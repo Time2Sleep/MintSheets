@@ -133,6 +133,7 @@ export const SPREADSHEET_SCHEMA = {
     ],
     ranges: {
       years: 'A4:A',
+      yearsValues: 'B4:B',
       data: 'A4:B',
     },
     coords: {

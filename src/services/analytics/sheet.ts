@@ -19,7 +19,7 @@ export const buildConfigureAnalyticsTabRequest = (tabId: number): SpreadsheetUpd
   const [header, ...rows] = initialRows;
 
   const balance = {
-    value: `=${settingsTab.key}!${coordsToA1Range(settingsTab.coords.balance)} + SUM(${ranges.years})`,
+    value: `=${settingsTab.key}!${coordsToA1Range(settingsTab.coords.balance)} + SUM(${ranges.yearsValues})`,
     format: { formula: true },
   };
 

@@ -36,7 +36,10 @@ export const initYearTab = async (
 };
 
 const createYearTab = async (spreadsheetId: string, year: string): Promise<number> => {
-  if (+year < 1970 || +year > 3000) throw new Error('[Annual Service]: invalid year!');
+  const yearNumber = Number(year);
+
+  if (Number.isNaN(yearNumber) || yearNumber < 1970 || yearNumber > 3000)
+    throw new Error('[Annual Service]: invalid year!');
 
   const [yearTab] = await createSpreadsheetTabs(spreadsheetId, String(year));
   return yearTab;

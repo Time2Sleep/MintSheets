@@ -61,28 +61,30 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       };
 
       const checkYearExistanceInSpreadsheet = async (year: string) => {
-        await checkYearTab(year);
-        await checkAnalytics(year);
+        const isYearTabExists = await checkYearTab(year);
+
+        if (isYearTabExists) await checkAnalytics(year);
       };
 
       const checkAnalytics = async (year: string) => {
         const analyticYears = Object.keys(analyticsData.value);
 
-        if (!analyticYears.includes(year)) {
-          const numberOfcategories = spendingCategoriesTitles.value.length + incomeCategoriesTitles.value.length;
-          await addYearToAnalyticsTab(context, year, analyticYears.length, numberOfcategories);
-        }
+        if (analyticYears.includes(year)) return;
+
+        const numberOfcategories = spendingCategoriesTitles.value.length + incomeCategoriesTitles.value.length;
+        await addYearToAnalyticsTab(context, year, analyticYears.length, numberOfcategories);
+        await getAnalyticsYears();
       };
 
-      const checkYearTab = async (year: string) => {
-        if (year in context.sheets) return;
+      const checkYearTab = async (year: string): Promise<boolean> => {
+        if (year in context.sheets) return true;
 
         const yearTabId = await initYearTab(context.spreadsheetId, year, {
           spending: spendingCategories.value,
           income: incomeCategories.value,
         });
 
-        if (!yearTabId) return;
+        if (!yearTabId) return false;
 
         updateContext({
           ...context,
@@ -91,6 +93,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
             [year]: yearTabId,
           },
         });
+
+        return true;
       };
 
       const allTransactionsSorted = computed<Transaction[]>(() => {
