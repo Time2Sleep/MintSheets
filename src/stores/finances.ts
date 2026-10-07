@@ -19,6 +19,7 @@ import { CURRENCIES, type Currency } from '../constants/currencies';
 import { getCurrencyByCode } from '../utils/currency';
 import { initYearTab } from '../services/annual';
 import { addYearToAnalyticsTab, getAnalyticsData } from '../services/analytics/sheet';
+import { createSerializedTaskRunner } from '../utils/async';
 
 export const createFinanceStore = (initialContext: SpreadsheetContext) =>
   defineStore(
@@ -32,6 +33,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const incomeCategories = ref<Record<string, string>>({});
       const currency = ref<Currency>(CURRENCIES[0]);
       const analyticsData = ref<Record<number, number>>({});
+      const analyticsWriteRunner = createSerializedTaskRunner();
 
       const spendingCategoriesTitles = computed<string[]>(() => Object.keys(spendingCategories.value));
       const incomeCategoriesTitles = computed<string[]>(() => Object.keys(incomeCategories.value));
@@ -67,17 +69,19 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       };
 
       const checkAnalytics = async (year: string) => {
-        const analyticYears = Object.keys(analyticsData.value);
+        await analyticsWriteRunner.run(year, async () => {
+          const analyticYears = Object.keys(analyticsData.value);
 
-        if (analyticYears.includes(year)) return;
+          if (analyticYears.includes(year)) return;
 
-        const numberOfcategories = spendingCategoriesTitles.value.length + incomeCategoriesTitles.value.length;
-        const result = await addYearToAnalyticsTab(context, year, analyticYears.length, numberOfcategories);
+          const numberOfcategories = spendingCategoriesTitles.value.length + incomeCategoriesTitles.value.length;
+          const result = await addYearToAnalyticsTab(context, year, analyticYears.length, numberOfcategories);
 
-        if (!result) return;
+          if (!result) return;
 
-        analyticsData.value = { ...analyticsData.value, [year]: 0 };
-        await getAnalyticsYears();
+          analyticsData.value = { ...analyticsData.value, [year]: 0 };
+          await getAnalyticsYears();
+        });
       };
 
       const checkYearTab = async (year: string): Promise<boolean> => {
