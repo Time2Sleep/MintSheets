@@ -74,6 +74,7 @@ export const initializeUserSession = async (token: string) => {
       const financeStore = getFinanceStore(context);
 
       await financeStore.getSettings();
+      await financeStore.getAnalyticsYears();
       await financeStore.syncLocalTransactions();
 
       googleStore.setStatus(SessionStatus.READY);

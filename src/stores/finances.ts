@@ -17,7 +17,9 @@ import {
 import { fetchSettingsFromSpreadsheet, saveSettingsToSpreadsheet } from '../services/settings';
 import { CURRENCIES, type Currency } from '../constants/currencies';
 import { getCurrencyByCode } from '../utils/currency';
-import { initYear } from '../services/annual';
+import { initYearTab } from '../services/annual';
+import { addYearToAnalyticsTab, getAnalyticsData } from '../services/analytics/sheet';
+import { createSerializedTaskRunner } from '../utils/async';
 
 export const createFinanceStore = (initialContext: SpreadsheetContext) =>
   defineStore(
@@ -30,6 +32,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const spendingCategories = ref<Record<string, string>>({});
       const incomeCategories = ref<Record<string, string>>({});
       const currency = ref<Currency>(CURRENCIES[0]);
+      const analyticsData = ref<Record<number, number>>({});
+      const analyticsWriteRunner = createSerializedTaskRunner();
 
       const spendingCategoriesTitles = computed<string[]>(() => Object.keys(spendingCategories.value));
       const incomeCategoriesTitles = computed<string[]>(() => Object.keys(incomeCategories.value));
@@ -54,20 +58,41 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
           console.warn('[Finance Store] failed to send transaction to spreadsheet.', error);
         }
 
-        checkYearByDateString(transactionData.date);
+        const year = transactionData.date.slice(0, 4);
+        await checkYearExistanceInSpreadsheet(year);
       };
 
-      const checkYearByDateString = async (date: string) => {
-        const year = Number(date.slice(0, 4));
+      const checkYearExistanceInSpreadsheet = async (year: string) => {
+        const isYearTabExists = await checkYearTab(year);
 
-        if (year in context.sheets) return;
+        if (isYearTabExists) await checkAnalytics(year);
+      };
 
-        const yearTabId = await initYear(context.spreadsheetId, year, {
+      const checkAnalytics = async (year: string) => {
+        await analyticsWriteRunner.run(year, async () => {
+          const analyticYears = Object.keys(analyticsData.value);
+
+          if (analyticYears.includes(year)) return;
+
+          const numberOfcategories = spendingCategoriesTitles.value.length + incomeCategoriesTitles.value.length;
+          const result = await addYearToAnalyticsTab(context, year, analyticYears.length, numberOfcategories);
+
+          if (!result) return;
+
+          analyticsData.value = { ...analyticsData.value, [year]: 0 };
+          await getAnalyticsYears();
+        });
+      };
+
+      const checkYearTab = async (year: string): Promise<boolean> => {
+        if (year in context.sheets) return true;
+
+        const yearTabId = await initYearTab(context.spreadsheetId, year, {
           spending: spendingCategories.value,
           income: incomeCategories.value,
         });
 
-        if (!yearTabId) return;
+        if (!yearTabId) return false;
 
         updateContext({
           ...context,
@@ -76,6 +101,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
             [year]: yearTabId,
           },
         });
+
+        return true;
       };
 
       const allTransactionsSorted = computed<Transaction[]>(() => {
@@ -113,6 +140,11 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const allTransactionsGrouped = computed(() => {
         return groupTransactions(allTransactionsSorted.value);
       });
+
+      const getAnalyticsYears = async () => {
+        const data = await getAnalyticsData(context);
+        analyticsData.value = data;
+      };
 
       const getSettings = async () => {
         const settings = await fetchSettingsFromSpreadsheet(context);
@@ -200,6 +232,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         syncLocalTransactions,
         getTransactions,
         updateContext,
+        getAnalyticsYears,
       };
     },
     {

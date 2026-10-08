@@ -77,6 +77,7 @@ export const SPREADSHEET_SCHEMA = {
       ],
     ],
     coords: {
+      dataStart: { row: 0, column: 0 },
       categories: { row: 2, column: 0 },
     },
     titles: {
@@ -119,6 +120,27 @@ export const SPREADSHEET_SCHEMA = {
       total: {
         top: 'SOLID',
       },
+    },
+  },
+
+  analytics: {
+    title: 'Analytics',
+    key: 'analytics',
+    initialRows: [
+      [{ value: 'Total capital:', format: { bold: true } }],
+      [],
+      [{ value: 'Accumulated over the year:', format: { bold: true } }],
+    ],
+    ranges: {
+      years: 'A4:A',
+      yearsValues: 'B4:B',
+      data: 'A4:B',
+    },
+    coords: {
+      dataStart: { row: 0, column: 0 },
+      balance: { row: 0, column: 1 },
+      years: { row: 3, column: 0 },
+      yearsValue: { row: 3, column: 1 },
     },
   },
 } as const;

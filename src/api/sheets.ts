@@ -81,11 +81,11 @@ export const appendSpreadsheetRows = async (
 export const getSpreadsheetValues = async <T extends SpreadsheetValue>(
   spreadsheetId: string,
   range: string,
-  formatted = false,
+  valueRenderOption: 'FORMATTED_VALUE' | 'UNFORMATTED_VALUE' | 'FORMULA' = 'UNFORMATTED_VALUE',
 ): Promise<T[][]> => {
   const response = await apiClient.get<{ values: T[][] }>(`/${spreadsheetId}/values/${range}`, {
     params: {
-      valueRenderOption: formatted ? 'FORMATTED_VALUE' : 'UNFORMATTED_VALUE',
+      valueRenderOption,
     },
   });
   return response.data.values || [];

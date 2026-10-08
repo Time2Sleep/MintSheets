@@ -7,7 +7,9 @@ import BaseSelect from '../UI/BaseSelect.vue';
 import EditableList from '../blocks/EditableList.vue';
 import WrapperContainer from '../UI/WrapperContainer.vue';
 import { useCurrentFinanceStore } from '../../stores/financeStoreRegistry';
-import { router } from '../../router';
+import { useRouter } from 'vue-router';
+import { useGoogleStore } from '../../stores/google';
+import { SpreadsheetStatus } from '../../types/spreadsheet';
 
 const steps = [
   {
@@ -69,6 +71,8 @@ const isNextDisabled = () => {
 const financeStore = useCurrentFinanceStore();
 const { saveSettings } = financeStore;
 const isError = ref<boolean>(false);
+const router = useRouter();
+
 const handleFinish = async () => {
   isLoading.value = true;
 
@@ -77,11 +81,14 @@ const handleFinish = async () => {
     currency: settings.currency.code,
   });
 
+  isLoading.value = false;
+
   if (!saved) {
     isError.value = true;
-    isLoading.value = false;
     return;
   }
+
+  useGoogleStore().spreadsheetStatus = SpreadsheetStatus.ACTIVE;
 
   router.push({ name: 'main' });
 };

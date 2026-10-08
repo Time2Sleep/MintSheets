@@ -16,6 +16,7 @@ import {
   buildSetSpreadsheetLocaleRequest,
   buildDeleteSheetRequest,
 } from '../utils/requestsFactory';
+import { buildConfigureAnalyticsTabRequest } from './analytics/sheet';
 
 export const initSpreadsheet = async (title: string): Promise<string | false> => {
   try {
@@ -33,7 +34,9 @@ export const initSpreadsheet = async (title: string): Promise<string | false> =>
 
 export const setupSpreadsheet = async (id: string): Promise<boolean> => {
   try {
-    const transactionsSheetId = await createSpreadsheetTab(id, SPREADSHEET_SCHEMA.transactionsTab.title);
+    const newTabs = [SPREADSHEET_SCHEMA.transactionsTab.title, SPREADSHEET_SCHEMA.analytics.title];
+
+    const [transactionsSheetId, analyticsSheetId] = await createSpreadsheetTabs(id, newTabs);
 
     await batchUpdateSpreadsheet(id, [
       buildSetSpreadsheetLocaleRequest(SPREADSHEET_SCHEMA.locale),
@@ -41,6 +44,7 @@ export const setupSpreadsheet = async (id: string): Promise<boolean> => {
       buildUpdateCellsValueRequest(0, 0, 0, SPREADSHEET_SCHEMA.settingsTab.initialRows), //write init data to 'Settings'
       buildUpdateCellsValueRequest(transactionsSheetId, 0, 0, SPREADSHEET_SCHEMA.transactionsTab.initialRows), //write init data to 'Transactions'
       buildConvertToTableRequest(SPREADSHEET_SCHEMA.transactionsTab.title, transactionsSheetId), //convert raw data to table
+      buildConfigureAnalyticsTabRequest(analyticsSheetId),
     ]);
 
     return true;
@@ -51,10 +55,17 @@ export const setupSpreadsheet = async (id: string): Promise<boolean> => {
   }
 };
 
-export const createSpreadsheetTab = async (id: string, tabName: string): Promise<number> => {
-  const response = await batchUpdateSpreadsheet(id, [buildAddSheetRequest(tabName)]);
+export const createSpreadsheetTabs = async (id: string, tabsName: string | string[]): Promise<number[]> => {
+  const isArray = Array.isArray(tabsName);
 
-  return response.replies[0].addSheet.properties.sheetId;
+  let requests;
+
+  if (isArray) requests = tabsName.map((title) => buildAddSheetRequest(title));
+  else requests = [buildAddSheetRequest(tabsName)];
+
+  const response = await batchUpdateSpreadsheet(id, requests);
+
+  return response.replies.map((reply) => reply.addSheet.properties.sheetId);
 };
 
 export const deleteSpreadsheetTab = async (id: string, tabId: number): Promise<void> => {
@@ -76,8 +87,9 @@ export const getSpreadsheetTabsIDs = async (id: string): Promise<SheetsIDs> => {
 
   const settingsId = tabs[SPREADSHEET_SCHEMA.settingsTab.key];
   const transactionsId = tabs[SPREADSHEET_SCHEMA.transactionsTab.key];
+  const analyticsId = tabs[SPREADSHEET_SCHEMA.analytics.key];
 
-  if (settingsId == null || transactionsId == null) {
+  if (settingsId == null || transactionsId == null || analyticsId == null) {
     throw new Error('[Spreadsheet Service] Failed to receive sheets IDs.');
   }
 
@@ -85,6 +97,7 @@ export const getSpreadsheetTabsIDs = async (id: string): Promise<SheetsIDs> => {
     ...tabs,
     settings: settingsId,
     transactions: transactionsId,
+    analytics: analyticsId,
   };
 };
 

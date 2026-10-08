@@ -75,6 +75,7 @@ export type SpreadsheetValue = string | number | boolean | null;
 export interface SheetsIDs {
   [SPREADSHEET_SCHEMA.settingsTab.key]: number;
   [SPREADSHEET_SCHEMA.transactionsTab.key]: number;
+  [SPREADSHEET_SCHEMA.analytics.key]: number;
   [key: string]: number;
 }
 
