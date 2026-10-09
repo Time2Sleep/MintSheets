@@ -1,8 +1,10 @@
 import AuthView from '../components/views/AuthView.vue';
 import MainView from '../components/views/MainView.vue';
 import AnalyticsView from '../components/views/AnalyticsView.vue';
-import SettingsView from '../components/views/SettingsView.vue';
+import SettingsView from '../components/views/settings/SettingsView.vue';
 import OnboardingView from '../components/views/OnboardingView.vue';
+import BalanceAndCurrency from '../components/views/settings/BalanceAndCurrency.vue';
+import CategoriesSettings from '../components/views/settings/CategoriesSettings.vue';
 
 export const routes = [
   {
@@ -24,9 +26,24 @@ export const routes = [
   },
   {
     path: '/settings',
-    name: 'settings',
-    component: SettingsView,
     meta: { requiresAuth: true, title: 'Settings' },
+    children: [
+      {
+        path: '',
+        name: 'settings',
+        component: SettingsView,
+      },
+      {
+        path: 'balance',
+        name: 'settings-balance',
+        component: BalanceAndCurrency,
+      },
+      {
+        path: 'categories',
+        name: 'categories',
+        component: CategoriesSettings,
+      },
+    ],
   },
   {
     path: '/onboarding',

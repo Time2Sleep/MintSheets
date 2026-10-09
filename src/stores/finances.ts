@@ -2,9 +2,11 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import {
   TransactionTypes,
+  type Categories,
   type SpreadsheetSettingsFormData,
   type Transaction,
   type TransactionFormData,
+  type TransactionType,
 } from '../types/finances';
 import type { SpreadsheetContext } from '../types/spreadsheet';
 import { dateToHumanReadable, isCurrentMonth } from '../utils/date';
@@ -14,7 +16,12 @@ import {
   saveTransactionsToSpreadsheet,
   syncTransactions,
 } from '../services/transactions';
-import { fetchSettingsFromSpreadsheet, saveSettingsToSpreadsheet } from '../services/settings';
+import {
+  fetchSettingsFromSpreadsheet,
+  saveBalanceToSpreadsheet,
+  saveCategoriesToSpreadsheet,
+  saveSettingsToSpreadsheet,
+} from '../services/settings';
 import { CURRENCIES, type Currency } from '../constants/currencies';
 import { getCurrencyByCode } from '../utils/currency';
 import { initYearTab } from '../services/annual';
@@ -29,14 +36,13 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const initialBalance = ref<number>(0);
       const transactions = ref<Transaction[]>([]);
       const pendingTransactions = ref<Transaction[]>([]);
-      const spendingCategories = ref<Record<string, string>>({});
-      const incomeCategories = ref<Record<string, string>>({});
+      const categories = ref<Categories>({ spending: {}, income: {} });
       const currency = ref<Currency>(CURRENCIES[0]);
       const analyticsData = ref<Record<number, number>>({});
       const analyticsWriteRunner = createSerializedTaskRunner();
 
-      const spendingCategoriesTitles = computed<string[]>(() => Object.keys(spendingCategories.value));
-      const incomeCategoriesTitles = computed<string[]>(() => Object.keys(incomeCategories.value));
+      const spendingCategoriesTitles = computed<string[]>(() => Object.keys(categories.value.spending));
+      const incomeCategoriesTitles = computed<string[]>(() => Object.keys(categories.value.income));
 
       const updateContext = (newContext: SpreadsheetContext) => {
         context = newContext;
@@ -87,10 +93,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const checkYearTab = async (year: string): Promise<boolean> => {
         if (year in context.sheets) return true;
 
-        const yearTabId = await initYearTab(context.spreadsheetId, year, {
-          spending: spendingCategories.value,
-          income: incomeCategories.value,
-        });
+        const yearTabId = await initYearTab(context.spreadsheetId, year, categories.value);
 
         if (!yearTabId) return false;
 
@@ -153,8 +156,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
         initialBalance.value = settings.balance;
         currency.value = settings.currency;
-        spendingCategories.value = settings.spendingCategories;
-        incomeCategories.value = settings.incomeCategories;
+        categories.value = settings.categories;
       };
 
       const saveSettings = async (settings: SpreadsheetSettingsFormData): Promise<boolean> => {
@@ -163,8 +165,10 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
           initialBalance.value = Number(settings.balance);
           currency.value = getCurrencyByCode(settings.currency) || CURRENCIES[0];
-          spendingCategories.value = settings.spendingCategories;
-          incomeCategories.value = settings.incomeCategories;
+          categories.value = {
+            spending: settings.spendingCategories,
+            income: settings.incomeCategories,
+          };
 
           return true;
         } catch (error) {
@@ -214,15 +218,26 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         transactions.value.unshift(...confirmedTransactions);
       };
 
+      const saveBalanceAndCurrency = async (balance: number, newCurrency: Currency) => {
+        await saveBalanceToSpreadsheet(context, balance, newCurrency.code);
+        initialBalance.value = balance;
+        currency.value = getCurrencyByCode(newCurrency.code) || CURRENCIES[0];
+      };
+
+      const saveCategories = async (newCategories: Record<string, string>, type: TransactionType) => {
+        await saveCategoriesToSpreadsheet(context, newCategories, type);
+
+        categories.value[type] = newCategories;
+      };
+
       return {
         initialBalance,
-        spendingCategories,
         spendingCategoriesTitles,
-        incomeCategories,
         incomeCategoriesTitles,
         transactions,
         monthIncome,
         monthSpending,
+        categories,
         addTransaction,
         allTransactionsGrouped,
         currency,
@@ -233,6 +248,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         getTransactions,
         updateContext,
         getAnalyticsYears,
+        saveCategories,
+        saveBalanceAndCurrency,
       };
     },
     {

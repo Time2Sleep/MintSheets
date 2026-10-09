@@ -25,11 +25,15 @@ export type TransactionFormData = {
   comment: string;
 };
 
+export interface Categories {
+  spending: Record<string, string>;
+  income: Record<string, string>;
+}
+
 export interface SpreadsheetSettings {
   balance: number;
   currency: Currency;
-  spendingCategories: Record<string, string>;
-  incomeCategories: Record<string, string>;
+  categories: Categories;
 }
 
 export interface SpreadsheetSettingsFormData {
@@ -37,9 +41,4 @@ export interface SpreadsheetSettingsFormData {
   currency: string;
   incomeCategories: Record<string, string>;
   spendingCategories: Record<string, string>;
-}
-
-export interface Categories {
-  spending: Record<string, string>;
-  income: Record<string, string>;
 }

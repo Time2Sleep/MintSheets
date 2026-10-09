@@ -3,7 +3,12 @@ import type { SpreadsheetContext } from '../types/spreadsheet';
 import { buildUpdateCellsValueRequest } from '../utils/requestsFactory';
 import { getCurrencyByCode } from '../utils/currency';
 import { CURRENCIES } from '../constants/currencies';
-import type { SpreadsheetSettings, SpreadsheetSettingsFormData } from '../types/finances';
+import {
+  TransactionTypes,
+  type SpreadsheetSettings,
+  type SpreadsheetSettingsFormData,
+  type TransactionType,
+} from '../types/finances';
 import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 
 export const saveSettingsToSpreadsheet = async (
@@ -21,18 +26,17 @@ export const saveSettingsToSpreadsheet = async (
     [[Number(saveData.balance), saveData.currency]],
   );
 
-  const saveSpendingCategories = buildUpdateCellsValueRequest(
+  buildSaveCategoriesRequest(settingsSheetId, saveData.spendingCategories, TransactionTypes.SPENDING);
+  const saveSpendingCategories = buildSaveCategoriesRequest(
     settingsSheetId,
-    coords.spendingCategories.row,
-    coords.spendingCategories.column,
-    [...Object.entries(saveData.spendingCategories), ...Array(100).fill(['', ''])],
+    saveData.spendingCategories,
+    TransactionTypes.SPENDING,
   );
 
-  const saveIncomegCategories = buildUpdateCellsValueRequest(
+  const saveIncomegCategories = buildSaveCategoriesRequest(
     settingsSheetId,
-    coords.incomeCategories.row,
-    coords.incomeCategories.column,
-    [...Object.entries(saveData.incomeCategories), ...Array(100).fill(['', ''])],
+    saveData.incomeCategories,
+    TransactionTypes.INCOME,
   );
 
   const setStatusToActive = buildUpdateCellsValueRequest(settingsSheetId, coords.status.row, coords.status.column, [
@@ -83,7 +87,52 @@ export const fetchSettingsFromSpreadsheet = async (context: SpreadsheetContext):
   return {
     balance,
     currency,
-    spendingCategories,
-    incomeCategories,
+    categories: {
+      spending: spendingCategories,
+      income: incomeCategories,
+    },
   };
+};
+
+export const saveBalanceToSpreadsheet = async (context: SpreadsheetContext, balance: number, currency: string) => {
+  const settingsSchema = SPREADSHEET_SCHEMA.settingsTab;
+  const settingsSheetId = context.sheets[settingsSchema.key];
+  const { coords } = settingsSchema;
+
+  const saveBalanceAndCurrency = buildUpdateCellsValueRequest(
+    settingsSheetId,
+    coords.balance.row,
+    coords.balance.column,
+    [[balance, currency]],
+  );
+
+  await batchUpdateSpreadsheet(context.spreadsheetId, [saveBalanceAndCurrency]);
+};
+
+export const saveCategoriesToSpreadsheet = async (
+  context: SpreadsheetContext,
+  categories: Record<string, string>,
+  type: TransactionType,
+) => {
+  const saveCategoriesRequest = buildSaveCategoriesRequest(
+    context.sheets[SPREADSHEET_SCHEMA.settingsTab.key],
+    categories,
+    type,
+  );
+
+  const requests = [saveCategoriesRequest];
+
+  await batchUpdateSpreadsheet(context.spreadsheetId, requests);
+};
+
+const buildSaveCategoriesRequest = (sheetId: number, categories: Record<string, string>, type: TransactionType) => {
+  const settingsSchema = SPREADSHEET_SCHEMA.settingsTab;
+  const { coords } = settingsSchema;
+
+  const coordsKey = type === TransactionTypes.INCOME ? 'incomeCategories' : 'spendingCategories';
+
+  return buildUpdateCellsValueRequest(sheetId, coords[coordsKey].row, coords[coordsKey].column, [
+    ...Object.entries(categories),
+    ...Array(100).fill(['', '']),
+  ]);
 };
