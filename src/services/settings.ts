@@ -141,5 +141,10 @@ const buildClearCurrentCategoriesRequest = (sheetId: number, type: TransactionTy
   const { coords } = settingsSchema;
   const coordsKey = type === TransactionTypes.INCOME ? 'incomeCategories' : 'spendingCategories';
 
-  return buildUpdateCellsValueRequest(sheetId, coords[coordsKey].row, coords[coordsKey].column, Array(number).fill(''));
+  return buildUpdateCellsValueRequest(
+    sheetId,
+    coords[coordsKey].row,
+    coords[coordsKey].column,
+    Array(number).fill(['', '']),
+  );
 };
