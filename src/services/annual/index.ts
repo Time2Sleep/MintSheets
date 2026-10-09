@@ -1,7 +1,7 @@
 import { batchUpdateSpreadsheet } from '../../api/sheets';
 import { SPREADSHEET_SCHEMA } from '../../schemas/spreadsheet';
 import { TransactionTypes, type Categories } from '../../types/finances';
-import type { AnnualTabRowIndexes } from '../../types/spreadsheet';
+import type { AnnualTabRowIndexes, SpreadsheetContext } from '../../types/spreadsheet';
 import { buildUpdateCellsValueRequest } from '../../utils/requestsFactory';
 import { createSpreadsheetTabs, deleteSpreadsheetTab } from '../spreadsheet';
 import { buildBordersRequests } from './borders';
@@ -114,4 +114,11 @@ const calculateRowIndexes = (categories: Categories): AnnualTabRowIndexes => {
     differenceFirst,
     differenceLast,
   };
+};
+
+export const deleteYearTabFromSpreadsheet = async (context: SpreadsheetContext, year: string) => {
+  const yearTabId = context.sheets[year];
+
+  if (!yearTabId) return;
+  await deleteSpreadsheetTab(context.spreadsheetId, yearTabId);
 };

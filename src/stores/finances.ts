@@ -24,7 +24,7 @@ import {
 } from '../services/settings';
 import { CURRENCIES, type Currency } from '../constants/currencies';
 import { getCurrencyByCode } from '../utils/currency';
-import { initYearTab } from '../services/annual';
+import { deleteYearTabFromSpreadsheet, initYearTab } from '../services/annual';
 import { addYearToAnalyticsTab, getAnalyticsData } from '../services/analytics/sheet';
 import { createSerializedTaskRunner } from '../utils/async';
 
@@ -69,9 +69,9 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       };
 
       const checkYearExistanceInSpreadsheet = async (year: string) => {
-        const isYearTabExists = await checkYearTab(year);
+        if (!(year in context.sheets)) await buildYearTab(year);
 
-        if (isYearTabExists) await checkAnalytics(year);
+        await checkAnalytics(year);
       };
 
       const checkAnalytics = async (year: string) => {
@@ -90,12 +90,10 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         });
       };
 
-      const checkYearTab = async (year: string): Promise<boolean> => {
-        if (year in context.sheets) return true;
-
+      const buildYearTab = async (year: string) => {
         const yearTabId = await initYearTab(context.spreadsheetId, year, categories.value);
 
-        if (!yearTabId) return false;
+        if (!yearTabId) return;
 
         updateContext({
           ...context,
@@ -104,8 +102,6 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
             [year]: yearTabId,
           },
         });
-
-        return true;
       };
 
       const allTransactionsSorted = computed<Transaction[]>(() => {
@@ -225,9 +221,20 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       };
 
       const saveCategories = async (newCategories: Record<string, string>, type: TransactionType) => {
-        await saveCategoriesToSpreadsheet(context, newCategories, type);
+        const numberOfCurrentCategories = Object.keys(categories.value[type]).length;
+
+        await saveCategoriesToSpreadsheet(context, newCategories, type, numberOfCurrentCategories);
 
         categories.value[type] = newCategories;
+
+        const currentYear = new Date().getFullYear();
+        await rebuildYearTab(currentYear.toString());
+      };
+
+      const rebuildYearTab = async (year: string) => {
+        await deleteYearTabFromSpreadsheet(context, year);
+
+        await buildYearTab(year);
       };
 
       return {

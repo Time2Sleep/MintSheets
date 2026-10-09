@@ -11,11 +11,12 @@ import {
 } from '../types/finances';
 import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 
+const settingsSchema = SPREADSHEET_SCHEMA.settingsTab;
+
 export const saveSettingsToSpreadsheet = async (
   context: SpreadsheetContext,
   saveData: SpreadsheetSettingsFormData,
 ): Promise<void> => {
-  const settingsSchema = SPREADSHEET_SCHEMA.settingsTab;
   const settingsSheetId = context.sheets[settingsSchema.key];
   const { coords } = settingsSchema;
 
@@ -49,7 +50,7 @@ export const saveSettingsToSpreadsheet = async (
 };
 
 export const fetchSettingsFromSpreadsheet = async (context: SpreadsheetContext): Promise<SpreadsheetSettings> => {
-  const { title, coords, ranges } = SPREADSHEET_SCHEMA.settingsTab;
+  const { title, coords, ranges } = settingsSchema;
   const rows = await getSpreadsheetValues(context.spreadsheetId, `${title}!${ranges.read}`);
 
   if (!rows.length) {
@@ -95,7 +96,6 @@ export const fetchSettingsFromSpreadsheet = async (context: SpreadsheetContext):
 };
 
 export const saveBalanceToSpreadsheet = async (context: SpreadsheetContext, balance: number, currency: string) => {
-  const settingsSchema = SPREADSHEET_SCHEMA.settingsTab;
   const settingsSheetId = context.sheets[settingsSchema.key];
   const { coords } = settingsSchema;
 
@@ -113,26 +113,33 @@ export const saveCategoriesToSpreadsheet = async (
   context: SpreadsheetContext,
   categories: Record<string, string>,
   type: TransactionType,
+  numberOfCurrentCategories: number,
 ) => {
-  const saveCategoriesRequest = buildSaveCategoriesRequest(
-    context.sheets[SPREADSHEET_SCHEMA.settingsTab.key],
-    categories,
+  const settingsTabId = context.sheets[settingsSchema.key];
+  const clearCurrentCategoriesRequest = buildClearCurrentCategoriesRequest(
+    settingsTabId,
     type,
+    numberOfCurrentCategories,
   );
+  const saveCategoriesRequest = buildSaveCategoriesRequest(context.sheets[settingsSchema.key], categories, type);
 
-  const requests = [saveCategoriesRequest];
+  const requests = [clearCurrentCategoriesRequest, saveCategoriesRequest];
 
   await batchUpdateSpreadsheet(context.spreadsheetId, requests);
 };
 
 const buildSaveCategoriesRequest = (sheetId: number, categories: Record<string, string>, type: TransactionType) => {
-  const settingsSchema = SPREADSHEET_SCHEMA.settingsTab;
   const { coords } = settingsSchema;
-
   const coordsKey = type === TransactionTypes.INCOME ? 'incomeCategories' : 'spendingCategories';
 
   return buildUpdateCellsValueRequest(sheetId, coords[coordsKey].row, coords[coordsKey].column, [
     ...Object.entries(categories),
-    ...Array(100).fill(['', '']),
   ]);
+};
+
+const buildClearCurrentCategoriesRequest = (sheetId: number, type: TransactionType, number: number) => {
+  const { coords } = settingsSchema;
+  const coordsKey = type === TransactionTypes.INCOME ? 'incomeCategories' : 'spendingCategories';
+
+  return buildUpdateCellsValueRequest(sheetId, coords[coordsKey].row, coords[coordsKey].column, Array(number).fill(''));
 };

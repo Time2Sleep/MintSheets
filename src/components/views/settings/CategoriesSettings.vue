@@ -12,11 +12,12 @@ import type { TransactionType } from '../../../types/finances';
 
 const route = useRoute();
 const type = route.query.type as TransactionType;
+const isValidType = type === 'spending' || type === 'income';
 
 const financeStore = useCurrentFinanceStore();
 const { categories } = storeToRefs(financeStore);
 
-const list = ref(Object.entries(categories.value[type]));
+const list = ref(Object.entries(isValidType ? Object.entries(categories.value[type]) : [[]]));
 
 const addNew = () => {
   list.value.push(['', '']);
@@ -29,7 +30,7 @@ const deleteCategory = (index: number) => {
 const isLoading = ref(false);
 const isError = ref(false);
 
-const save = () => {
+const save = async () => {
   isLoading.value = true;
   isError.value = false;
 
@@ -39,7 +40,7 @@ const save = () => {
   );
 
   try {
-    financeStore.saveCategories(categoriesToSave, type as TransactionType);
+    await financeStore.saveCategories(categoriesToSave, type as TransactionType);
   } catch (error) {
     console.warn('Failed to save categories', error);
 

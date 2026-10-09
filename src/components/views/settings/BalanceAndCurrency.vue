@@ -2,7 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { useCurrentFinanceStore } from '../../../stores/financeStoreRegistry';
 import BaseInput from '../../UI/BaseInput.vue';
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import BaseSelect from '../../UI/BaseSelect.vue';
 import { CURRENCIES } from '../../../constants/currencies';
 import WrapperContainer from '../../UI/WrapperContainer.vue';
@@ -17,7 +17,20 @@ const form = reactive({
   balance: initialBalance,
 });
 
-const handleSubmit = () => {};
+const isLoading = ref(false);
+const isError = ref(false);
+const handleSubmit = async () => {
+  isLoading.value = true;
+  isError.value = false;
+  try {
+    await financeStore.saveBalanceAndCurrency(Number(form.balance), form.currency);
+  } catch (error) {
+    console.warn('Failed to save balance and currency', error);
+    isError.value = true;
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 <template>
   <BaseLayout hide-title>
