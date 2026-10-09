@@ -17,7 +17,7 @@ const isValidType = type === 'spending' || type === 'income';
 const financeStore = useCurrentFinanceStore();
 const { categories } = storeToRefs(financeStore);
 
-const list = ref(Object.entries(isValidType ? Object.entries(categories.value[type]) : [[]]));
+const list = ref(isValidType ? Object.entries(categories.value[type]) : []);
 
 const addNew = () => {
   list.value.push(['', '']);
