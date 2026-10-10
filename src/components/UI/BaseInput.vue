@@ -17,6 +17,10 @@ const props = withDefaults(
   },
 );
 
+const emits = defineEmits<{
+  (e: 'change', payload: Event): void;
+}>();
+
 const value = defineModel<string | number>();
 
 const handleFocus = ({ target, isTrusted }: FocusEvent) => {
@@ -47,6 +51,7 @@ const handleFocus = ({ target, isTrusted }: FocusEvent) => {
       :class="icon ? 'pr-10' : 'pr-3'"
       :type="type"
       @focus="handleFocus($event)"
+      @change="(payload) => emits('change', payload)"
     />
 
     <BaseIcon

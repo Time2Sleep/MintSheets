@@ -11,6 +11,8 @@ export const useAsyncAction = <T = void>() => {
   const isSuccess = ref<boolean>(false);
 
   const execute = async (callback: () => Promise<T>, options: AsyncActionOptions = {}): Promise<T | undefined> => {
+    if (isLoading.value) return;
+
     const { throwError = false, errorMessage = 'Async action failed' } = options;
 
     isLoading.value = true;
@@ -36,10 +38,17 @@ export const useAsyncAction = <T = void>() => {
     }
   };
 
+  const clearState = () => {
+    isLoading.value = false;
+    isError.value = false;
+    isSuccess.value = false;
+  };
+
   return {
     isError,
     isLoading,
     isSuccess,
     execute,
+    clearState,
   };
 };

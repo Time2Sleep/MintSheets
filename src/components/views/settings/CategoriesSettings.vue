@@ -15,6 +15,8 @@ const route = useRoute();
 const type = route.query.type as TransactionType;
 const isValidType = type === 'spending' || type === 'income';
 
+const { isError, isLoading, isSuccess, execute, clearState } = useAsyncAction();
+
 const financeStore = useCurrentFinanceStore();
 const { categories } = storeToRefs(financeStore);
 
@@ -22,13 +24,13 @@ const list = ref(isValidType ? Object.entries(categories.value[type]) : []);
 
 const addNew = () => {
   list.value.push(['', '']);
+  clearState();
 };
 
 const deleteCategory = (index: number) => {
   list.value.splice(index, 1);
+  clearState();
 };
-
-const { isError, isLoading, isSuccess, execute } = useAsyncAction();
 
 const save = async () => {
   const categoriesToSave = list.value
@@ -41,19 +43,21 @@ const save = async () => {
 const isSaveDisabled = computed(() => {
   if (isLoading.value) return true;
 
-  const namesCounts = list.value.reduce(
-    (acc, [category]) => {
-      const key = category.toLowerCase();
+  const namesCounts = list.value
+    .filter(([category]) => category)
+    .reduce(
+      (acc, [category]) => {
+        const key = category.toLowerCase();
 
-      if (acc[key]) {
-        acc[key]++;
-        return acc;
-      }
+        if (acc[key]) {
+          acc[key]++;
+          return acc;
+        }
 
-      return { ...acc, [key]: 1 };
-    },
-    {} as Record<string, number>,
-  );
+        return { ...acc, [key]: 1 };
+      },
+      {} as Record<string, number>,
+    );
 
   const hasDuplicates = Object.values(namesCounts).some((count) => count > 1);
 
@@ -72,8 +76,14 @@ const isSaveDisabled = computed(() => {
       </div>
 
       <div v-for="(_, index) in list" :key="index" class="grid grid-cols-[4fr_5fr_1fr] gap-2 items-center">
-        <BaseInput v-model="list[index][0]" placeholder="Food" name="categoryName" />
-        <BaseInput v-model.number="list[index][1]" placeholder="0" name="categoryGoal" type="number" />
+        <BaseInput v-model="list[index][0]" placeholder="Food" name="categoryName" @change="clearState" />
+        <BaseInput
+          v-model.number="list[index][1]"
+          placeholder="0"
+          name="categoryGoal"
+          type="number"
+          @change="clearState"
+        />
 
         <BaseIcon icon="trash" @click="deleteCategory(index)" />
       </div>

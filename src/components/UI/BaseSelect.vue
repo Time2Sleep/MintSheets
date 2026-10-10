@@ -16,6 +16,10 @@ const props = withDefaults(
   },
 );
 
+const emits = defineEmits<{
+  (e: 'change', payload: Event): void;
+}>();
+
 const value = defineModel<Option>();
 
 const getOptionLabel = (option: Option): string | number => {
@@ -36,6 +40,7 @@ const getOptionLabel = (option: Option): string | number => {
       :aria-label="placeholder || 'select'"
       class="select appearance-none block w-full bg-dark-primary text-light placeholder:text-light-secondary border border-dark-primary focus:outline-none focus:border-mint-primary rounded-xl px-3 py-2 pr-10"
       :class="{ 'text-light-secondary': !value }"
+      @change="(payload) => emits('change', payload)"
     >
       <option value="" disabled selected hidden>{{ placeholder }}</option>
       <option :value="undefined" disabled selected hidden>{{ placeholder }}</option>
