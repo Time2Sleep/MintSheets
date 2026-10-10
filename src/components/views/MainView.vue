@@ -29,10 +29,17 @@ onMounted(() => {
 
 <template>
   <div ref="content">
-    <div class="flex justify-between items-center pb-3 pt-4">
+    <div class="flex gap-4 items-center pb-3 pt-4">
       <h1 class="text-xl">Hello, {{ userInfo?.given_name || 'User' }}!</h1>
 
-      <div class="flex gap-1 items-center">
+      <BaseIcon
+        v-if="sessionStatus === SessionStatus.RESTORING"
+        icon="arrow-clockwise"
+        class="animate-spin"
+        role="status"
+      />
+
+      <div class="ml-auto flex gap-1 items-center">
         <p
           v-if="sessionStatus === SessionStatus.OFFLINE"
           class="rounded-xl bg-red-secondary text-red-primary px-3 mr-2"

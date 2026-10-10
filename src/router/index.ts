@@ -17,7 +17,11 @@ router.beforeEach((to) => {
 
   if (
     isAuthRequired &&
-    !(sessionStatus.value === SessionStatus.READY || sessionStatus.value === SessionStatus.OFFLINE)
+    !(
+      sessionStatus.value === SessionStatus.READY ||
+      sessionStatus.value === SessionStatus.OFFLINE ||
+      sessionStatus.value === SessionStatus.RESTORING
+    )
   ) {
     return { name: 'auth' };
   } else if (googleStore.spreadsheetStatus === SpreadsheetStatus.DRAFT && to.name !== 'onboarding') {
