@@ -32,7 +32,12 @@ onMounted(() => {
     <div class="flex gap-4 items-center pb-3 pt-4">
       <h1 class="text-xl">Hello, {{ userInfo?.given_name || 'User' }}!</h1>
 
-      <BaseIcon v-if="sessionStatus === SessionStatus.RESTORING" icon="arrow-clockwise" class="animate-spin" />
+      <BaseIcon
+        v-if="sessionStatus === SessionStatus.RESTORING"
+        icon="arrow-clockwise"
+        class="animate-spin"
+        role="status"
+      />
 
       <div class="ml-auto flex gap-1 items-center">
         <p
