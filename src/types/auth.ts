@@ -10,6 +10,7 @@ export interface TokenClientConfig {
   client_id: string;
   scope: string;
   callback: (response: TokenResponse) => void;
+  error_callback: (error: Error) => void;
 }
 
 export interface TokenResponse {
@@ -39,6 +40,7 @@ export interface GoogleSDK {
 export const SessionStatus = {
   DISCONNECTED: 'DISCONNECTED',
   INITIALIZING: 'INITIALIZING',
+  RESTORING: 'RESTORING',
   READY: 'READY',
   OFFLINE: 'OFFLINE',
   ERROR: 'ERROR',

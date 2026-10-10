@@ -5,7 +5,7 @@ import { getFinanceStore } from '../stores/financeStoreRegistry';
 import { setAuthorizationHeader } from '../api';
 import { SpreadsheetStatus } from '../types/spreadsheet';
 import { SessionStatus } from '../types/auth';
-import { initializeGoogleAuth, loadGoogleSDK } from './googleAuth';
+import { initializeGoogleAuth, loadGoogleSDK, refreshGoogleToken } from './googleAuth';
 import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 import { getUserInfo } from '../api/google';
 
@@ -28,9 +28,18 @@ const handleAuthError = (error: Error) => {
 };
 
 export const initializeAuth = async () => {
+  const googleStore = useGoogleStore();
+  if (googleStore.userInfo?.sub) {
+    googleStore.setStatus(SessionStatus.RESTORING);
+  }
+
   try {
     await loadGoogleSDK();
     initializeGoogleAuth(initializeUserSession, handleAuthError);
+
+    if (googleStore.userInfo?.sub) {
+      refreshGoogleToken(googleStore.userInfo?.sub);
+    }
   } catch (error) {
     handleAuthError(error instanceof Error ? error : new Error(String(error)));
   }
