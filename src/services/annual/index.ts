@@ -50,6 +50,8 @@ const configureYearTab = async (tabId: number, spreadsheetId: string, year: stri
 
   const indexes = calculateRowIndexes(categories);
 
+  const totalSaved = { value: `=${yearSchema.columns.annual}${indexes.differenceFirst}`, format: { formula: true } };
+
   const spendingCategoriesRows = buildCategoriesRows(
     categories.spending,
     TransactionTypes.SPENDING,
@@ -78,6 +80,7 @@ const configureYearTab = async (tabId: number, spreadsheetId: string, year: stri
 
   await batchUpdateSpreadsheet(spreadsheetId, [
     buildUpdateCellsValueRequest(tabId, yearSchema.coords.dataStart.row, yearSchema.coords.dataStart.column, [
+      [totalSaved],
       ...yearSchema.initialRows,
       ...spendingCategoriesRows,
       spendingSummaryRow,

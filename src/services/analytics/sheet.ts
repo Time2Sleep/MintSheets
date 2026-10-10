@@ -32,12 +32,11 @@ export const addYearToAnalyticsTab = async (
   context: SpreadsheetContext,
   year: string,
   rowOffset: number,
-  numberOfCategories: number,
 ): Promise<boolean> => {
   const { sheets, spreadsheetId } = context;
   const { coords } = SPREADSHEET_SCHEMA.analytics;
 
-  const savedCell = calculateYearTotalCellRange(numberOfCategories);
+  const savedCell = coordsToA1Range(SPREADSHEET_SCHEMA.yearTab.coords.dataStart);
   const yearRow: RawCellValue[] = [year, { value: `=${year}!${savedCell}`, format: { formula: true } }];
   const updateCellsValueRequest = buildUpdateCellsValueRequest(
     sheets.analytics,
@@ -53,14 +52,4 @@ export const addYearToAnalyticsTab = async (
     console.warn('[Analitycs Service][sheet] Failed to add a year', error);
     return false;
   }
-};
-
-const calculateYearTotalCellRange = (numberOfCategories: number): string => {
-  const { coords, gaps, columns } = SPREADSHEET_SCHEMA.yearTab;
-
-  const numberOfGaps = 2;
-
-  const totalDifferenceRowIndex = coords.categories.row + numberOfCategories + numberOfGaps * gaps.blocks;
-
-  return `${columns.annual}${totalDifferenceRowIndex}`;
 };

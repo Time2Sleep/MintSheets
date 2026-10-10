@@ -9,6 +9,7 @@ import BaseInput from '../../UI/BaseInput.vue';
 import BaseButton from '../../UI/BaseButton.vue';
 import { useRoute } from 'vue-router';
 import type { TransactionType } from '../../../types/finances';
+import { useAsyncAction } from '../../../composables/useAsyncAction';
 
 const route = useRoute();
 const type = route.query.type as TransactionType;
@@ -27,33 +28,18 @@ const deleteCategory = (index: number) => {
   list.value.splice(index, 1);
 };
 
-const isLoading = ref(false);
-const isError = ref(false);
+const { isError, isLoading, isSuccess, execute } = useAsyncAction();
 
 const save = async () => {
-  isLoading.value = true;
-  isError.value = false;
+  const categoriesToSave = list.value
+    .filter(([category]) => category)
+    .reduce((acc, [category, goal]) => ({ ...acc, [category]: goal }), {} as Record<string, string>);
 
-  const categoriesToSave = list.value.reduce(
-    (acc, [category, goal]) => ({ ...acc, [category]: goal }),
-    {} as Record<string, string>,
-  );
-
-  try {
-    await financeStore.saveCategories(categoriesToSave, type as TransactionType);
-  } catch (error) {
-    console.warn('Failed to save categories', error);
-
-    isError.value = true;
-  } finally {
-    isLoading.value = false;
-  }
+  await execute(() => financeStore.saveCategories(categoriesToSave, type as TransactionType));
 };
 
 const isSaveDisabled = computed(() => {
-  const hasEmpty = list.value.some(([category]) => !category);
-
-  if (hasEmpty) return true;
+  if (isLoading.value) return true;
 
   const namesCounts = list.value.reduce(
     (acc, [category]) => {
@@ -95,6 +81,13 @@ const isSaveDisabled = computed(() => {
       <BaseButton class="mt-2" @click="addNew">Add new category</BaseButton>
     </WrapperContainer>
 
-    <BaseButton class="mt-auto" :disabled="isSaveDisabled" @click="save">Save</BaseButton>
+    <div class="mt-auto w-full">
+      <div v-if="isError" class="text-red-primary mb-2">Something went wrong, try again.</div>
+      <div v-if="isSuccess" class="text-green-primary mb-2">Saved successfully.</div>
+
+      <BaseButton class="w-full" :disabled="isSaveDisabled" @click="save">
+        {{ isLoading ? 'Saving...' : 'Save' }}
+      </BaseButton>
+    </div>
   </BaseLayout>
 </template>

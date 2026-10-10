@@ -80,8 +80,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
           if (analyticYears.includes(year)) return;
 
-          const numberOfcategories = spendingCategoriesTitles.value.length + incomeCategoriesTitles.value.length;
-          const result = await addYearToAnalyticsTab(context, year, analyticYears.length, numberOfcategories);
+          const result = await addYearToAnalyticsTab(context, year, analyticYears.length);
 
           if (!result) return;
 
