@@ -2,9 +2,11 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import {
   TransactionTypes,
+  type Categories,
   type SpreadsheetSettingsFormData,
   type Transaction,
   type TransactionFormData,
+  type TransactionType,
 } from '../types/finances';
 import type { SpreadsheetContext } from '../types/spreadsheet';
 import { dateToHumanReadable, isCurrentMonth } from '../utils/date';
@@ -14,10 +16,15 @@ import {
   saveTransactionsToSpreadsheet,
   syncTransactions,
 } from '../services/transactions';
-import { fetchSettingsFromSpreadsheet, saveSettingsToSpreadsheet } from '../services/settings';
+import {
+  fetchSettingsFromSpreadsheet,
+  saveBalanceToSpreadsheet,
+  saveCategoriesToSpreadsheet,
+  saveSettingsToSpreadsheet,
+} from '../services/settings';
 import { CURRENCIES, type Currency } from '../constants/currencies';
 import { getCurrencyByCode } from '../utils/currency';
-import { initYearTab } from '../services/annual';
+import { deleteYearTabFromSpreadsheet, initYearTab } from '../services/annual';
 import { addYearToAnalyticsTab, getAnalyticsData } from '../services/analytics/sheet';
 import { createSerializedTaskRunner } from '../utils/async';
 
@@ -29,14 +36,13 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const initialBalance = ref<number>(0);
       const transactions = ref<Transaction[]>([]);
       const pendingTransactions = ref<Transaction[]>([]);
-      const spendingCategories = ref<Record<string, string>>({});
-      const incomeCategories = ref<Record<string, string>>({});
+      const categories = ref<Categories>({ spending: {}, income: {} });
       const currency = ref<Currency>(CURRENCIES[0]);
       const analyticsData = ref<Record<number, number>>({});
       const analyticsWriteRunner = createSerializedTaskRunner();
 
-      const spendingCategoriesTitles = computed<string[]>(() => Object.keys(spendingCategories.value));
-      const incomeCategoriesTitles = computed<string[]>(() => Object.keys(incomeCategories.value));
+      const spendingCategoriesTitles = computed<string[]>(() => Object.keys(categories.value.spending));
+      const incomeCategoriesTitles = computed<string[]>(() => Object.keys(categories.value.income));
 
       const updateContext = (newContext: SpreadsheetContext) => {
         context = newContext;
@@ -63,9 +69,9 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       };
 
       const checkYearExistanceInSpreadsheet = async (year: string) => {
-        const isYearTabExists = await checkYearTab(year);
+        if (!(year in context.sheets)) await buildYearTab(year);
 
-        if (isYearTabExists) await checkAnalytics(year);
+        await checkAnalytics(year);
       };
 
       const checkAnalytics = async (year: string) => {
@@ -84,15 +90,10 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         });
       };
 
-      const checkYearTab = async (year: string): Promise<boolean> => {
-        if (year in context.sheets) return true;
+      const buildYearTab = async (year: string) => {
+        const yearTabId = await initYearTab(context.spreadsheetId, year, categories.value);
 
-        const yearTabId = await initYearTab(context.spreadsheetId, year, {
-          spending: spendingCategories.value,
-          income: incomeCategories.value,
-        });
-
-        if (!yearTabId) return false;
+        if (!yearTabId) return;
 
         updateContext({
           ...context,
@@ -101,8 +102,6 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
             [year]: yearTabId,
           },
         });
-
-        return true;
       };
 
       const allTransactionsSorted = computed<Transaction[]>(() => {
@@ -153,8 +152,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
         initialBalance.value = settings.balance;
         currency.value = settings.currency;
-        spendingCategories.value = settings.spendingCategories;
-        incomeCategories.value = settings.incomeCategories;
+        categories.value = settings.categories;
       };
 
       const saveSettings = async (settings: SpreadsheetSettingsFormData): Promise<boolean> => {
@@ -163,8 +161,10 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
           initialBalance.value = Number(settings.balance);
           currency.value = getCurrencyByCode(settings.currency) || CURRENCIES[0];
-          spendingCategories.value = settings.spendingCategories;
-          incomeCategories.value = settings.incomeCategories;
+          categories.value = {
+            spending: settings.spendingCategories,
+            income: settings.incomeCategories,
+          };
 
           return true;
         } catch (error) {
@@ -214,15 +214,37 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         transactions.value.unshift(...confirmedTransactions);
       };
 
+      const saveBalanceAndCurrency = async (balance: number, newCurrency: Currency) => {
+        await saveBalanceToSpreadsheet(context, balance, newCurrency.code);
+        initialBalance.value = balance;
+        currency.value = getCurrencyByCode(newCurrency.code) || CURRENCIES[0];
+      };
+
+      const saveCategories = async (newCategories: Record<string, string>, type: TransactionType) => {
+        const numberOfCurrentCategories = Object.keys(categories.value[type]).length;
+
+        await saveCategoriesToSpreadsheet(context, newCategories, type, numberOfCurrentCategories);
+
+        categories.value[type] = newCategories;
+
+        const currentYear = new Date().getFullYear();
+        await rebuildYearTab(currentYear.toString());
+      };
+
+      const rebuildYearTab = async (year: string) => {
+        await deleteYearTabFromSpreadsheet(context, year);
+
+        await buildYearTab(year);
+      };
+
       return {
         initialBalance,
-        spendingCategories,
         spendingCategoriesTitles,
-        incomeCategories,
         incomeCategoriesTitles,
         transactions,
         monthIncome,
         monthSpending,
+        categories,
         addTransaction,
         allTransactionsGrouped,
         currency,
@@ -233,6 +255,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         getTransactions,
         updateContext,
         getAnalyticsYears,
+        saveCategories,
+        saveBalanceAndCurrency,
       };
     },
     {
