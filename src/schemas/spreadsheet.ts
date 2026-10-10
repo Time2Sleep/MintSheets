@@ -56,7 +56,6 @@ export const SPREADSHEET_SCHEMA = {
 
   yearTab: {
     initialRows: [
-      [],
       [
         { value: 'Spending', format: { bold: true } },
         { value: 'Plan', format: { bold: true } },

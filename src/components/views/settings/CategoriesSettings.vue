@@ -9,10 +9,13 @@ import BaseInput from '../../UI/BaseInput.vue';
 import BaseButton from '../../UI/BaseButton.vue';
 import { useRoute } from 'vue-router';
 import type { TransactionType } from '../../../types/finances';
+import { useAsyncAction } from '../../../composables/useAsyncAction';
 
 const route = useRoute();
 const type = route.query.type as TransactionType;
 const isValidType = type === 'spending' || type === 'income';
+
+const { isError, isLoading, isSuccess, execute, clearState } = useAsyncAction();
 
 const financeStore = useCurrentFinanceStore();
 const { categories } = storeToRefs(financeStore);
@@ -21,53 +24,40 @@ const list = ref(isValidType ? Object.entries(categories.value[type]) : []);
 
 const addNew = () => {
   list.value.push(['', '']);
+  clearState();
 };
 
 const deleteCategory = (index: number) => {
   list.value.splice(index, 1);
+  clearState();
 };
 
-const isLoading = ref(false);
-const isError = ref(false);
-
 const save = async () => {
-  isLoading.value = true;
-  isError.value = false;
+  const categoriesToSave = list.value
+    .filter(([category]) => category)
+    .reduce((acc, [category, goal]) => ({ ...acc, [category]: goal }), {} as Record<string, string>);
 
-  const categoriesToSave = list.value.reduce(
-    (acc, [category, goal]) => ({ ...acc, [category]: goal }),
-    {} as Record<string, string>,
-  );
-
-  try {
-    await financeStore.saveCategories(categoriesToSave, type as TransactionType);
-  } catch (error) {
-    console.warn('Failed to save categories', error);
-
-    isError.value = true;
-  } finally {
-    isLoading.value = false;
-  }
+  await execute(() => financeStore.saveCategories(categoriesToSave, type as TransactionType));
 };
 
 const isSaveDisabled = computed(() => {
-  const hasEmpty = list.value.some(([category]) => !category);
+  if (isLoading.value) return true;
 
-  if (hasEmpty) return true;
+  const namesCounts = list.value
+    .filter(([category]) => category)
+    .reduce(
+      (acc, [category]) => {
+        const key = category.toLowerCase();
 
-  const namesCounts = list.value.reduce(
-    (acc, [category]) => {
-      const key = category.toLowerCase();
+        if (acc[key]) {
+          acc[key]++;
+          return acc;
+        }
 
-      if (acc[key]) {
-        acc[key]++;
-        return acc;
-      }
-
-      return { ...acc, [key]: 1 };
-    },
-    {} as Record<string, number>,
-  );
+        return { ...acc, [key]: 1 };
+      },
+      {} as Record<string, number>,
+    );
 
   const hasDuplicates = Object.values(namesCounts).some((count) => count > 1);
 
@@ -86,8 +76,14 @@ const isSaveDisabled = computed(() => {
       </div>
 
       <div v-for="(_, index) in list" :key="index" class="grid grid-cols-[4fr_5fr_1fr] gap-2 items-center">
-        <BaseInput v-model="list[index][0]" placeholder="Food" name="categoryName" />
-        <BaseInput v-model.number="list[index][1]" placeholder="0" name="categoryGoal" type="number" />
+        <BaseInput v-model="list[index][0]" placeholder="Food" name="categoryName" @change="clearState" />
+        <BaseInput
+          v-model.number="list[index][1]"
+          placeholder="0"
+          name="categoryGoal"
+          type="number"
+          @change="clearState"
+        />
 
         <BaseIcon icon="trash" @click="deleteCategory(index)" />
       </div>
@@ -95,6 +91,13 @@ const isSaveDisabled = computed(() => {
       <BaseButton class="mt-2" @click="addNew">Add new category</BaseButton>
     </WrapperContainer>
 
-    <BaseButton class="mt-auto" :disabled="isSaveDisabled" @click="save">Save</BaseButton>
+    <div class="mt-auto w-full">
+      <div v-if="isError" class="text-red-primary mb-2">Something went wrong, try again.</div>
+      <div v-if="isSuccess" class="text-green-primary mb-2">Saved successfully.</div>
+
+      <BaseButton class="w-full" :disabled="isSaveDisabled" @click="save">
+        {{ isLoading ? 'Saving...' : 'Save' }}
+      </BaseButton>
+    </div>
   </BaseLayout>
 </template>

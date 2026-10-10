@@ -37,7 +37,8 @@ export const buildOtherSheetRange = (
   columnEnd: string,
   rowEnd?: number,
 ) => {
-  return `${sheetName}!${columnStart}${rowStart + 1}:${columnEnd}${rowEnd ? rowEnd + 1 : ''}`;
+  const rowEndIndex = rowEnd ? `$${rowEnd + 1}` : '';
+  return `${sheetName}!$${columnStart}$${rowStart + 1}:$${columnEnd}${rowEndIndex}`;
 };
 
 export const applyCellFormat = (cell: RawCellValue): SheetsCellData => {
