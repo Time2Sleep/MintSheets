@@ -59,6 +59,7 @@ export const initializeGoogleAuth = (
         onError(new Error('OAuth Error:' + response.error));
       }
     },
+    error_callback: onError,
   });
 };
 
