@@ -18,7 +18,7 @@ export interface TokenResponse {
   error?: string;
   expires_in?: number;
   scope?: string;
-  token_type?: string;
+  token_type?: { type: string };
 }
 
 export interface TokenClient {
