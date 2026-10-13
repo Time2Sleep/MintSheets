@@ -22,7 +22,7 @@ withDefaults(
 );
 </script>
 <template>
-  <div class="flex flex-col h-full pt-4 pb-6 gap-4">
+  <div class="flex flex-col h-full pt-4 pb-6 gap-4 overflow-hidden">
     <div class="flex items-center gap-6 mb-4">
       <button v-if="!hideNav" class="flex items-center gap-2 w-fit" aria-label="Back" @click="goBack">
         <BaseIcon icon="arrow-left" size="24px" />

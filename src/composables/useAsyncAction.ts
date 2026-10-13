@@ -5,12 +5,15 @@ type AsyncActionOptions = {
   errorMessage?: string;
 };
 
-export const useAsyncAction = <T = void>() => {
+export const useAsyncAction = () => {
   const isLoading = ref<boolean>(false);
   const isError = ref<boolean>(false);
   const isSuccess = ref<boolean>(false);
 
-  const execute = async (callback: () => Promise<T>, options: AsyncActionOptions = {}): Promise<T | undefined> => {
+  const execute = async <T = void>(
+    callback: () => Promise<T>,
+    options: AsyncActionOptions = {},
+  ): Promise<T | undefined> => {
     if (isLoading.value) return;
 
     const { throwError = false, errorMessage = 'Async action failed' } = options;
