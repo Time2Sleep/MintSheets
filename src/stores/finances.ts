@@ -109,7 +109,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         );
       });
 
-      const transactionsCount = computed<number>(() => allTransactionsSorted.value.length);
+      const transactionsCount = computed<number>(() => transactions.value.length);
 
       const monthIncome = computed<number>(() => {
         return allTransactionsSorted.value

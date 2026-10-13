@@ -73,13 +73,6 @@ const tempToStored = (keys: (keyof typeof dataMapping)[]) => {
   });
 };
 
-const resetMappings = () => {
-  Object.keys(dataMapping).forEach((key) => {
-    dataMapping[key as keyof typeof dataMapping] = '';
-    dataMappingTemp[key as keyof typeof dataMapping] = '';
-  });
-};
-
 const importedTransactions = computed(() => {
   if (!dataMapping.startRow) return [];
 
@@ -108,6 +101,7 @@ const importedCategories = computed(() => getUniqueValuesByColumn<string>(dataMa
 const importedTypes = computed(() => getUniqueValuesByColumn<string>(dataMapping.typeColumn));
 
 const categoriesMapping = ref<Record<string, string>>({});
+const typesMapping = ref<Record<string, string>>({});
 
 const financeStore = useCurrentFinanceStore();
 const { incomeCategoriesTitles, spendingCategoriesTitles, transactionsCount } = storeToRefs(financeStore);
@@ -128,7 +122,9 @@ const handleImportFinish = async () => {
       const amount = row[columnToIndex(dataMapping.amountColumn)];
       const comment = row[columnToIndex(dataMapping.commentColumn)];
       const category = categoriesMapping.value[row[columnToIndex(dataMapping.categoryColumn)] as string];
-      const type = dataMapping.typeColumn ? row[columnToIndex(dataMapping.typeColumn)] : dataMapping.transactionType;
+      const type = dataMapping.typeColumn
+        ? typesMapping.value[row[columnToIndex(dataMapping.typeColumn)] as string]
+        : dataMapping.transactionType;
 
       return rowToTransaction([id, date, type, category, amount, comment]);
     })
@@ -141,7 +137,7 @@ const handleImportFinish = async () => {
   step.value = 'years';
 };
 
-const handleCreateYearTabs = () => {
+const handleCreateYearTabs = async () => {
   isLoading.value = true;
 
   const transactionYears = getUniqueValuesByColumn<number>(dataMapping.dateColumn).reduce((acc, date) => {
@@ -155,12 +151,20 @@ const handleCreateYearTabs = () => {
     return acc;
   }, new Set<string>());
 
-  transactionYears.forEach(async (year) => {
-    await financeStore.checkYearExistanceInSpreadsheet(year);
-  });
+  await execute(() =>
+    Promise.all([...transactionYears].map((year) => financeStore.checkYearExistanceInSpreadsheet(year))),
+  );
 
-  isLoading.value = false;
-  step.value = 'finish';
+  if (!isError.value) step.value = 'finish';
+};
+
+const resetMappings = () => {
+  Object.keys(dataMapping).forEach((key) => {
+    dataMapping[key as keyof typeof dataMapping] = '';
+    dataMappingTemp[key as keyof typeof dataMapping] = '';
+  });
+  categoriesMapping.value = {};
+  typesMapping.value = {};
 };
 
 const resetAll = () => {
@@ -281,7 +285,7 @@ const resetAll = () => {
             <template v-for="type in importedTypes" :key="type">
               <div>{{ type }}</div>
 
-              <BaseSelect :options="['spending', 'income']" :name="`${type}Mapping`" />
+              <BaseSelect v-model="typesMapping[type]" :options="['spending', 'income']" :name="`${type}Mapping`" />
             </template>
           </div>
         </WrapperContainer>
@@ -370,7 +374,7 @@ const resetAll = () => {
         </div>
       </WrapperContainer>
 
-      <WrapperContainer v-if="step === 'years'" :gap="4">
+      <WrapperContainer v-if="step === 'finish'" :gap="4">
         <div class="text-green-primary">Successfully created years tabs!</div>
 
         <BaseButton visual="link" @click="resetAll">Import new data</BaseButton>

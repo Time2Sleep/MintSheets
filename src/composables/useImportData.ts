@@ -19,7 +19,8 @@ export const useImportData = () => {
   };
 
   const getRawValuesFromTab = async (tabTitle: string) => {
-    rawData.value = await getSpreadsheetValues(spreadsheetId.value, tabTitle);
+    const range = encodeURIComponent(`'${tabTitle.replace(/'/g, "''")}'`);
+    rawData.value = await getSpreadsheetValues(spreadsheetId.value, range);
 
     return rawData.value;
   };
