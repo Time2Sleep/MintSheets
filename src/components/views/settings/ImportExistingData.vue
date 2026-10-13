@@ -17,8 +17,9 @@ import type { SpreadsheetValue } from '../../../types/spreadsheet';
 import { sheetDateToStringDate } from '../../../utils/date';
 import { useRouter } from 'vue-router';
 
-type Steps = 'start' | 'tabs' | 'range' | 'type' | 'categories' | 'years' | 'finish';
+type Steps = 'start' | 'tabs' | 'range' | 'categories' | 'years' | 'finish';
 
+const router = useRouter();
 const action = useAsyncAction();
 const { isError, isLoading, execute, clearState } = action;
 
@@ -56,6 +57,7 @@ const handleSelectTab = async (tabTitle: string) => {
   step.value = 'range';
 };
 
+const isTransactionTypeSet = ref(false);
 const dataMapping = reactive({
   startRow: '',
   dateColumn: '',
@@ -278,7 +280,11 @@ const resetAll = () => {
           <BaseButton @click="dataMapping.transactionType = TransactionTypes.INCOME"> Import as 'Income' </BaseButton>
         </WrapperContainer>
 
-        <WrapperContainer v-else-if="dataMapping.typeColumn" :gap="4" class="flex-grow overflow-hidden min-h-[50dvh]">
+        <WrapperContainer
+          v-else-if="dataMapping.typeColumn && !isTransactionTypeSet"
+          :gap="4"
+          class="flex-grow overflow-hidden min-h-[50dvh]"
+        >
           <div>Set up transaction types mapping</div>
 
           <div class="grid grid-cols-[1fr_1fr] gap-2 flex-grow overflow-y-scroll">
@@ -288,6 +294,8 @@ const resetAll = () => {
               <BaseSelect v-model="typesMapping[type]" :options="['spending', 'income']" :name="`${type}Mapping`" />
             </template>
           </div>
+
+          <BaseButton @click="isTransactionTypeSet = true"> Next </BaseButton>
         </WrapperContainer>
 
         <WrapperContainer v-else :gap="2">
@@ -379,7 +387,7 @@ const resetAll = () => {
 
         <BaseButton visual="link" @click="resetAll">Import new data</BaseButton>
 
-        <BaseButton @click="useRouter().push('/')">Return to the main view</BaseButton>
+        <BaseButton @click="router.push('/')">Return to the main view</BaseButton>
       </WrapperContainer>
     </template>
   </BaseLayout>
