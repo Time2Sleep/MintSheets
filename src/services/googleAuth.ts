@@ -2,6 +2,13 @@ import type { TokenClient, TokenResponse } from '../types/auth';
 
 let tokenClient: TokenClient | null = null;
 
+const scopes = [
+  'openid',
+  'profile',
+  'https://www.googleapis.com/auth/spreadsheets',
+  'https://www.googleapis.com/auth/drive.metadata.readonly',
+].join(' ');
+
 export const loadGoogleSDK = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (window.google?.accounts?.oauth2) {
@@ -50,8 +57,7 @@ export const initializeGoogleAuth = (
 
   tokenClient = window.google.accounts.oauth2.initTokenClient({
     client_id: clientId,
-    scope:
-      'openid profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.metadata.readonly',
+    scope: scopes,
     callback: (response: TokenResponse) => {
       if (response.access_token) {
         onTokenReceived(response.access_token);

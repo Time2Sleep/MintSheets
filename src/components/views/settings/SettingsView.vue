@@ -6,6 +6,7 @@ const links = [
   { name: 'Initial Balance and currency', to: '/settings/balance' },
   { name: 'Spending categories', to: '/settings/categories?type=spending' },
   { name: 'Income categories', to: '/settings/categories?type=income' },
+  { name: 'Import data', to: '/settings/import' },
 ];
 </script>
 

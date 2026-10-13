@@ -1,5 +1,5 @@
 import { batchUpdateSpreadsheet, getSpreadsheetValues } from '../api/sheets';
-import type { RawCellValue, SpreadsheetContext } from '../types/spreadsheet';
+import type { RawCellValue, SpreadsheetContext, SpreadsheetValue } from '../types/spreadsheet';
 import { type Transaction, type TransactionFormData, TransactionTypes } from '../types/finances';
 import { sheetDateToStringDate, stringDateToSheetDate } from '../utils/date';
 import { buildInsertRowRequest, buildUpdateCellsValueRequest } from '../utils/requestsFactory';
@@ -25,9 +25,14 @@ const isTransactionType = (value: string): value is Transaction['type'] => {
   return Object.values(TransactionTypes).includes(value as Transaction['type']);
 };
 
-export const rowToTransaction = ([id, date, type, category, amount, comment]: (
-  string | number
-)[]): Transaction | null => {
+export const rowToTransaction = ([
+  id,
+  date,
+  type,
+  category,
+  amount,
+  comment,
+]: SpreadsheetValue[]): Transaction | null => {
   if (
     typeof id !== 'string' ||
     typeof date !== 'number' ||
@@ -68,16 +73,17 @@ export const formDataToTransaction = ({ amount, ...rest }: TransactionFormData):
 export const saveTransactionsToSpreadsheet = async (
   context: SpreadsheetContext,
   transactions: Transaction[],
+  insertAtRowIndex?: number,
 ): Promise<void> => {
   const rows = transactions.map(transactionToRawCellValues);
-  const START_ROW_INDEX = 1;
+  const START_ROW_INDEX = insertAtRowIndex || 1;
   const START_COLUMN_INDEX = 0;
 
   const response = await batchUpdateSpreadsheet(context.spreadsheetId, [
     buildInsertRowRequest(
       context.sheets[SPREADSHEET_SCHEMA.transactionsTab.key],
       START_ROW_INDEX,
-      transactions.length + 1,
+      transactions.length + START_ROW_INDEX,
     ),
     buildUpdateCellsValueRequest(
       context.sheets[SPREADSHEET_SCHEMA.transactionsTab.key],

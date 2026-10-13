@@ -109,6 +109,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         );
       });
 
+      const transactionsCount = computed<number>(() => transactions.value.length);
+
       const monthIncome = computed<number>(() => {
         return allTransactionsSorted.value
           .filter((transaction) => transaction.type === TransactionTypes.INCOME && isCurrentMonth(transaction.date))
@@ -236,6 +238,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         await buildYearTab(year);
       };
 
+      const getContext = () => context;
+
       return {
         initialBalance,
         spendingCategoriesTitles,
@@ -256,6 +260,9 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         getAnalyticsYears,
         saveCategories,
         saveBalanceAndCurrency,
+        getContext,
+        checkYearExistanceInSpreadsheet,
+        transactionsCount,
       };
     },
     {

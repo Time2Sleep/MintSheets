@@ -5,6 +5,7 @@ import SettingsView from '../components/views/settings/SettingsView.vue';
 import OnboardingView from '../components/views/OnboardingView.vue';
 import BalanceAndCurrency from '../components/views/settings/BalanceAndCurrency.vue';
 import CategoriesSettings from '../components/views/settings/CategoriesSettings.vue';
+import ImportExistingData from '../components/views/settings/ImportExistingData.vue';
 
 export const routes = [
   {
@@ -42,6 +43,11 @@ export const routes = [
         path: 'categories',
         name: 'categories',
         component: CategoriesSettings,
+      },
+      {
+        path: 'import',
+        name: 'import',
+        component: ImportExistingData,
       },
     ],
   },
