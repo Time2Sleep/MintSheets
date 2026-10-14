@@ -8,6 +8,7 @@ import { SessionStatus } from '../types/auth';
 import { initializeGoogleAuth, loadGoogleSDK, refreshGoogleToken } from './googleAuth';
 import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 import { getUserInfo } from '../api/google';
+import { checkPopupBlocked } from '../utils/checkPopup';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -29,7 +30,9 @@ const handleAuthError = (error: Error) => {
 
 export const initializeAuth = async () => {
   const googleStore = useGoogleStore();
-  if (googleStore.userInfo?.sub) {
+  const isBlocked = checkPopupBlocked();
+
+  if (!isBlocked && googleStore.userInfo?.sub) {
     googleStore.setStatus(SessionStatus.RESTORING);
   }
 
@@ -37,7 +40,7 @@ export const initializeAuth = async () => {
     await loadGoogleSDK();
     initializeGoogleAuth(initializeUserSession, handleAuthError);
 
-    if (googleStore.userInfo?.sub) {
+    if (!isBlocked && googleStore.userInfo?.sub) {
       refreshGoogleToken(googleStore.userInfo?.sub);
     }
   } catch (error) {

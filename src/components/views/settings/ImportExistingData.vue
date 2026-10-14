@@ -136,12 +136,12 @@ const handleImportFinish = async () => {
 
   await execute(() => saveTransactionsToSpreadsheet(financeStore.getContext(), transactions, startRowIndex));
 
+  await financeStore.getTransactions();
+
   step.value = 'years';
 };
 
 const handleCreateYearTabs = async () => {
-  isLoading.value = true;
-
   const transactionYears = getUniqueValuesByColumn<number>(dataMapping.dateColumn).reduce((acc, date) => {
     const dateString = sheetDateToStringDate(date);
 
@@ -153,9 +153,9 @@ const handleCreateYearTabs = async () => {
     return acc;
   }, new Set<string>());
 
-  await execute(() =>
-    Promise.all([...transactionYears].map((year) => financeStore.checkYearExistanceInSpreadsheet(year))),
-  );
+  transactionYears.forEach(async (year) => {
+    await execute(() => financeStore.checkYearExistanceInSpreadsheet(year));
+  });
 
   if (!isError.value) step.value = 'finish';
 };
