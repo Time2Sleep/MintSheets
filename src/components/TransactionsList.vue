@@ -75,10 +75,17 @@ const openModal = (transaction: Transaction) => {
 
 const { isLoading, isSuccess, isError, execute, clearState } = useAsyncAction();
 
-const handleEdit = async () => {
-  if (!modalTransaction.value) return;
+const handleEdit = async (transaction: Transaction) => {
+  await execute(() => financeStore.updateTransaction(transaction));
+};
 
-  await execute(() => financeStore.updateTransaction(modalTransaction.value!));
+const handleDelete = async (transaction: Transaction) => {
+  await execute(() => financeStore.deleteTransaction(transaction), { noSuccess: true });
+
+  if (isError.value) return;
+
+  modalTransaction.value = undefined;
+  clearState();
 };
 </script>
 
@@ -118,6 +125,7 @@ const handleEdit = async () => {
     :loading="isLoading"
     @submit="handleEdit"
     @close="clearState"
+    @delete="handleDelete"
   >
     <div v-if="isError" class="text-red-primary">Something went wrong...</div>
     <div v-if="isSuccess" class="text-green-primary">Saved successfully</div>

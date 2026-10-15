@@ -2,7 +2,7 @@ import { batchUpdateSpreadsheet, getSpreadsheetValues } from '../api/sheets';
 import type { RawCellValue, SpreadsheetContext, SpreadsheetValue } from '../types/spreadsheet';
 import { type Transaction, type TransactionFormData, TransactionTypes } from '../types/finances';
 import { sheetDateToStringDate, stringDateToSheetDate } from '../utils/date';
-import { buildInsertRowRequest, buildUpdateCellsValueRequest } from '../utils/requestsFactory';
+import { buildInsertRowsRequest, buildUpdateCellsValueRequest } from '../utils/requestsFactory';
 import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 
 export const transactionToRawCellValues = ({
@@ -80,7 +80,7 @@ export const saveTransactionsToSpreadsheet = async (
   const START_COLUMN_INDEX = 0;
 
   const response = await batchUpdateSpreadsheet(context.spreadsheetId, [
-    buildInsertRowRequest(
+    buildInsertRowsRequest(
       context.sheets[SPREADSHEET_SCHEMA.transactionsTab.key],
       START_ROW_INDEX,
       transactions.length + START_ROW_INDEX,

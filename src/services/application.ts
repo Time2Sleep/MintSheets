@@ -1,6 +1,6 @@
 import { useGoogleStore } from '../stores/google';
 import { router } from '../router';
-import { findOrCreateSpreadsheet, getSpreadsheetStatus, getSpreadsheetTabsIDs } from './spreadsheet';
+import { findOrCreateSpreadsheet, getSpreadsheetStatus } from './spreadsheet';
 import { getFinanceStore } from '../stores/financeStoreRegistry';
 import { setAuthorizationHeader } from '../api';
 import { SpreadsheetStatus } from '../types/spreadsheet';
@@ -9,6 +9,7 @@ import { initializeGoogleAuth, loadGoogleSDK, refreshGoogleToken } from './googl
 import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 import { getUserInfo } from '../api/google';
 import { checkPopupBlocked } from '../utils/checkPopup';
+import { getSpreadsheetTabsIDs } from './tabs';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 

@@ -1,6 +1,7 @@
 import type {
   SpreadsheetAddSheetRequest,
   SpreadsheetAddTableRquest,
+  SpreadsheetDeleteDimensionRequest,
   SpreadsheetDeleteSheetRequest,
   SpreadsheetInsertDimensionRequest,
   SpreadsheetUpdateCellsValueRequest,
@@ -34,7 +35,7 @@ export const buildDeleteSheetRequest = (sheetId: number): SpreadsheetDeleteSheet
   },
 });
 
-export const buildInsertRowRequest = (
+export const buildInsertRowsRequest = (
   sheetId: number,
   startIndex: number,
   endIndex: number,
@@ -47,6 +48,21 @@ export const buildInsertRowRequest = (
       endIndex,
     },
     inheritFromBefore: false,
+  },
+});
+
+export const buildDeleteRowsRequest = (
+  sheetId: number,
+  startIndex: number,
+  endIndex: number,
+): SpreadsheetDeleteDimensionRequest => ({
+  deleteDimension: {
+    range: {
+      sheetId,
+      dimension: 'ROWS',
+      startIndex,
+      endIndex,
+    },
   },
 });
 

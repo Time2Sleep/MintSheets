@@ -31,7 +31,7 @@ const handleClose = () => {
     >
       <div class="absolute top-0 left-0 bg-dark-primary w-full h-full opacity-70" @click="handleClose" />
 
-      <WrapperContainer class="relative z-11 min-h-[100px] min-w-[50%]" :style="containerStyle">
+      <WrapperContainer class="relative z-11 min-h-[100px] min-w-[50vw]" :style="containerStyle">
         <div class="flex justify-between mb-4">
           <div>{{ title }}</div>
 
