@@ -28,6 +28,8 @@ import { getCurrencyByCode } from '../utils/currency';
 import { deleteYearTabFromSpreadsheet, initYearTab } from '../services/annual';
 import { addYearToAnalyticsTab, getAnalyticsData } from '../services/analytics/sheet';
 import { createSerializedTaskRunner } from '../utils/async';
+import { deleteRowsFromSpreadsheet } from '../services/tabs';
+import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 
 export const createFinanceStore = (initialContext: SpreadsheetContext) =>
   defineStore(
@@ -254,9 +256,22 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
         if (transactionIndex < 0) throw new Error('[Finance Store] Transaction not found.');
 
-        await changeTransactionInSpreadsheet(getContext(), transaction, transactionIndex + 1);
+        await changeTransactionInSpreadsheet(context, transaction, transactionIndex + 1);
 
         transactions.value[transactionIndex] = transaction;
+      };
+
+      const deleteTransaction = async (transaction: Transaction) => {
+        const transactionIndex = getTransactionIndex(transaction.id);
+
+        if (transactionIndex < 0) throw new Error('[Finance Store] Transaction not found.');
+
+        const { spreadsheetId, sheets } = context;
+        const tabId = sheets[SPREADSHEET_SCHEMA.transactionsTab.key];
+
+        await deleteRowsFromSpreadsheet(spreadsheetId, tabId, transactionIndex + 1, 1);
+
+        transactions.value.splice(transactionIndex, 1);
       };
 
       return {
@@ -283,6 +298,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         checkYearExistanceInSpreadsheet,
         transactionsCount,
         updateTransaction,
+        deleteTransaction,
         transactionsLoading,
       };
     },

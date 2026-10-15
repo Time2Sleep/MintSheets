@@ -1,4 +1,4 @@
-import type { SheetsRowData, SpreadsheetBorders } from './spreadsheet';
+import type { SheetsRowData, SpreadsheetBorders, SpreadsheetDimensionRange } from './spreadsheet';
 
 export interface SpreadsheetUpdateBordersRequest {
   updateBorders: SpreadsheetBorders;
@@ -61,13 +61,14 @@ export interface SpreadsheetDeleteSheetRequest {
 
 export interface SpreadsheetInsertDimensionRequest {
   insertDimension: {
-    range: {
-      sheetId: number;
-      dimension: 'ROWS' | 'COLUMNS';
-      startIndex: number;
-      endIndex: number;
-    };
+    range: SpreadsheetDimensionRange;
     inheritFromBefore: boolean;
+  };
+}
+
+export interface SpreadsheetDeleteDimensionRequest {
+  deleteDimension: {
+    range: SpreadsheetDimensionRange;
   };
 }
 
@@ -79,4 +80,5 @@ export type BatchUpdateRequest =
   | SpreadsheetAddTableRquest
   | SpreadsheetAddSheetRequest
   | SpreadsheetDeleteSheetRequest
-  | SpreadsheetInsertDimensionRequest;
+  | SpreadsheetInsertDimensionRequest
+  | SpreadsheetDeleteDimensionRequest;

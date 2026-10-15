@@ -3,6 +3,7 @@ import { ref } from 'vue';
 type AsyncActionOptions = {
   throwError?: boolean;
   errorMessage?: string;
+  noSuccess?: boolean;
 };
 
 export const useAsyncAction = () => {
@@ -16,7 +17,7 @@ export const useAsyncAction = () => {
   ): Promise<T | undefined> => {
     if (isLoading.value) return;
 
-    const { throwError = false, errorMessage = 'Async action failed' } = options;
+    const { throwError = false, errorMessage = 'Async action failed', noSuccess = false } = options;
 
     isLoading.value = true;
     isError.value = false;
@@ -25,7 +26,7 @@ export const useAsyncAction = () => {
     try {
       const result = await callback();
 
-      isSuccess.value = true;
+      isSuccess.value = !noSuccess;
 
       return result;
     } catch (error) {

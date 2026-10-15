@@ -140,3 +140,10 @@ export interface AnnualTabRowIndexes {
   differenceFirst: number;
   differenceLast: number;
 }
+
+export interface SpreadsheetDimensionRange {
+  sheetId: number;
+  dimension: 'ROWS' | 'COLUMNS';
+  startIndex: number;
+  endIndex: number;
+}

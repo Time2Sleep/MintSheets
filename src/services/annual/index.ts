@@ -3,7 +3,7 @@ import { SPREADSHEET_SCHEMA } from '../../schemas/spreadsheet';
 import { TransactionTypes, type Categories } from '../../types/finances';
 import type { AnnualTabRowIndexes, SpreadsheetContext } from '../../types/spreadsheet';
 import { buildUpdateCellsValueRequest } from '../../utils/requestsFactory';
-import { createSpreadsheetTabs, deleteSpreadsheetTab } from '../spreadsheet';
+import { deleteSpreadsheetTab, createSpreadsheetTabs } from '../tabs';
 import { buildBordersRequests } from './borders';
 import { buildCategoriesRows, buildDifferenceRows, buildSummaryRow } from './data';
 
