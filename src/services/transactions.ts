@@ -139,3 +139,23 @@ export const syncTransactions = async (
     };
   }
 };
+
+export const changeTransactionInSpreadsheet = async (
+  context: SpreadsheetContext,
+  transaction: Transaction,
+  rowIndex: number,
+) => {
+  try {
+    const { key: sheetKey, coords } = SPREADSHEET_SCHEMA.transactionsTab;
+
+    await batchUpdateSpreadsheet(context.spreadsheetId, [
+      buildUpdateCellsValueRequest(context.sheets[sheetKey], rowIndex, coords.transactions.column, [
+        transactionToRawCellValues(transaction),
+      ]),
+    ]);
+  } catch (error) {
+    console.warn('[Transactions service]: Failed to change transaction.', error);
+
+    throw error;
+  }
+};

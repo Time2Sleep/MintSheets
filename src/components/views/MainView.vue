@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TransactionForm from '../TransactionForm.vue';
+import AddTransactionForm from '../AddTransactionForm.vue';
 import FinanceCard from '../UI/FinanceCard.vue';
 import BaseIcon from '../UI/BaseIcon.vue';
 import WrapperContainer from '../UI/WrapperContainer.vue';
@@ -73,7 +73,7 @@ onMounted(() => {
       class="mb-4 transition-opacity duration-300 ease-in-out"
       :class="{ 'opacity-0': bottomSheetExpanded }"
     >
-      <TransactionForm />
+      <AddTransactionForm />
     </WrapperContainer>
   </div>
 
