@@ -82,7 +82,7 @@ const handleEdit = async (transaction: Transaction) => {
 const handleDelete = async (transaction: Transaction) => {
   await execute(() => financeStore.deleteTransaction(transaction), { noSuccess: true });
 
-  if (isError) return;
+  if (isError.value) return;
 
   modalTransaction.value = undefined;
   clearState();
