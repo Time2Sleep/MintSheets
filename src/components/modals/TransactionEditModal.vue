@@ -10,6 +10,11 @@ defineProps<{
   loading: boolean;
 }>();
 
+const emits = defineEmits<{
+  (e: 'submit', transaction: Transaction): void;
+  (e: 'close'): void;
+}>();
+
 const transaction = defineModel<Transaction>('transaction');
 
 const transactionFormData = reactive<TransactionFormData>({
@@ -23,6 +28,7 @@ const transactionFormData = reactive<TransactionFormData>({
 const isOpen = computed(() => !!transaction.value);
 
 const handleClose = () => {
+  emits('close');
   transaction.value = undefined;
 };
 
@@ -43,7 +49,11 @@ const handleSubmit = () => {
   if (!transactionData) return;
 
   const id = transaction.value.id;
-  transaction.value = { id, ...transactionData };
+  const editedTransaction = { id, ...transactionData };
+
+  transaction.value = editedTransaction;
+
+  emits('submit', editedTransaction);
 };
 </script>
 <template>

@@ -252,6 +252,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const updateTransaction = async (transaction: Transaction) => {
         const transactionIndex = getTransactionIndex(transaction.id);
 
+        if (transactionIndex < 0) throw new Error('[Finance Store] Transaction not found.');
+
         await changeTransactionInSpreadsheet(getContext(), transaction, transactionIndex + 1);
 
         transactions.value[transactionIndex] = transaction;

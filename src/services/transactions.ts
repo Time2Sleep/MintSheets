@@ -155,5 +155,7 @@ export const changeTransactionInSpreadsheet = async (
     ]);
   } catch (error) {
     console.warn('[Transactions service]: Failed to change transaction.', error);
+
+    throw error;
   }
 };

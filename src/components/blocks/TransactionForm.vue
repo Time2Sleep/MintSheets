@@ -73,10 +73,10 @@ const handleSubmit = () => {
     </div>
 
     <BaseSelect v-model="transaction.category" name="category" placeholder="Category" :options="options" />
-    <BaseInput v-model.number="transaction.amount" name="amount" placeholder="Amount" type="number" />
+    <BaseInput v-model="transaction.amount" name="amount" placeholder="Amount" type="number" />
     <BaseInput v-model="transaction.comment" name="comment" placeholder="Comment" />
 
-    <BaseButton v-if="loading" aria-label="loading" :disabled="true">
+    <BaseButton v-if="loading" :disabled="true">
       <LoadingSpinner />
     </BaseButton>
 

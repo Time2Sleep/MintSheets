@@ -20,6 +20,8 @@ const emits = defineEmits<{
     :key="transaction.id"
     class="flex justify-between items-center pb-1"
     :class="{ 'animate-pulse': transaction.pending }"
+    role="button"
+    tabindex="0"
     @click="emits('transaction-click', transaction)"
   >
     <div>

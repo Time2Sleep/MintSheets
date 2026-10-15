@@ -22,7 +22,13 @@ const handleClose = () => {
 </script>
 <template>
   <Transition>
-    <div v-if="open" class="absolute z-10 top-0 left-0 flex items-center justify-center w-[100vw] h-[100vh]">
+    <div
+      v-if="open"
+      class="absolute z-10 top-0 left-0 fixed inset-0 flex items-center justify-center w-[100vw] h-[100vh]"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="`${title} modal window`"
+    >
       <div class="absolute top-0 left-0 bg-dark-primary w-full h-full opacity-70" @click="handleClose" />
 
       <WrapperContainer class="relative z-11 min-h-[100px] min-w-[50%]" :style="containerStyle">

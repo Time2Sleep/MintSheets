@@ -73,7 +73,7 @@ const openModal = (transaction: Transaction) => {
   modalTransaction.value = transaction;
 };
 
-const { isLoading, isSuccess, isError, execute } = useAsyncAction();
+const { isLoading, isSuccess, isError, execute, clearState } = useAsyncAction();
 
 const handleEdit = async () => {
   if (!modalTransaction.value) return;
@@ -113,7 +113,12 @@ const handleEdit = async () => {
     </WrapperContainer>
   </div>
 
-  <TransactionEditModal v-model:transaction="modalTransaction" :loading="isLoading" @update:transaction="handleEdit">
+  <TransactionEditModal
+    v-model:transaction="modalTransaction"
+    :loading="isLoading"
+    @submit="handleEdit"
+    @close="clearState"
+  >
     <div v-if="isError" class="text-red-primary">Something went wrong...</div>
     <div v-if="isSuccess" class="text-green-primary">Saved successfully</div>
   </TransactionEditModal>
