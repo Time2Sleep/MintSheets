@@ -2,11 +2,15 @@
 import { storeToRefs } from 'pinia';
 import TransactionItem from './UI/TransactionItem.vue';
 import WrapperContainer from './UI/WrapperContainer.vue';
+import TransactionEditModal from './modals/TransactionEditModal.vue';
 import { onMounted, computed, ref } from 'vue';
 import { useCurrentFinanceStore } from '../stores/financeStoreRegistry';
+import { type Transaction } from '../types/finances';
+import { useAsyncAction } from '../composables/useAsyncAction';
+import LoadingSpinner from './UI/LoadingSpinner.vue';
 
 const financeStore = useCurrentFinanceStore();
-const { allTransactionsGrouped, currency } = storeToRefs(financeStore);
+const { allTransactionsGrouped, currency, transactionsLoading } = storeToRefs(financeStore);
 
 const props = defineProps<{
   offset: number;
@@ -63,6 +67,19 @@ onMounted(() => {
     isReady.value = true;
   }, 50);
 });
+
+const modalTransaction = ref<Transaction>();
+const openModal = (transaction: Transaction) => {
+  modalTransaction.value = transaction;
+};
+
+const { isLoading, isSuccess, isError, execute } = useAsyncAction();
+
+const handleEdit = async () => {
+  if (!modalTransaction.value) return;
+
+  await execute(() => financeStore.updateTransaction(modalTransaction.value!));
+};
 </script>
 
 <template>
@@ -79,6 +96,8 @@ onMounted(() => {
         <div class="h-[5px] min-h-[5px] mx-auto rounded bg-light-secondary w-[50px]"></div>
       </div>
 
+      <LoadingSpinner v-if="transactionsLoading" />
+
       <p v-if="!Object.keys(allTransactionsGrouped).length" class="text-light-secondary">No transactions yet</p>
 
       <ul
@@ -88,9 +107,14 @@ onMounted(() => {
         :class="{ 'overflow-hidden': !isExpanded, 'overflow-y-auto': isExpanded }"
       >
         <li v-for="(data, key) in allTransactionsGrouped" :key="key" class="block text-sm pb-2">
-          <TransactionItem :title="key" :data="data" :currency="currency.symbol" />
+          <TransactionItem :title="key" :data="data" :currency="currency.symbol" @transaction-click="openModal" />
         </li>
       </ul>
     </WrapperContainer>
   </div>
+
+  <TransactionEditModal v-model:transaction="modalTransaction" :loading="isLoading" @update:transaction="handleEdit">
+    <div v-if="isError" class="text-red-primary">Something went wrong...</div>
+    <div v-if="isSuccess" class="text-green-primary">Saved successfully</div>
+  </TransactionEditModal>
 </template>

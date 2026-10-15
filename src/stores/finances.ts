@@ -11,6 +11,7 @@ import {
 import type { SpreadsheetContext } from '../types/spreadsheet';
 import { dateToHumanReadable, isCurrentMonth } from '../utils/date';
 import {
+  changeTransactionInSpreadsheet,
   formDataToTransaction,
   getTransactionsFromSpreadsheet,
   saveTransactionsToSpreadsheet,
@@ -40,7 +41,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const currency = ref<Currency>(CURRENCIES[0]);
       const analyticsData = ref<Record<number, number>>({});
       const analyticsWriteRunner = createSerializedTaskRunner();
-
+      const transactionsLoading = ref(true);
       const spendingCategoriesTitles = computed<string[]>(() => Object.keys(categories.value.spending));
       const incomeCategoriesTitles = computed<string[]>(() => Object.keys(categories.value.income));
 
@@ -192,12 +193,16 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       };
 
       const getTransactions = async () => {
+        transactionsLoading.value = true;
+
         try {
           transactions.value = await getTransactionsFromSpreadsheet(context);
         } catch (error) {
           console.warn('[Finance Store]: Failed to recieve transactions.', error);
 
           throw error;
+        } finally {
+          transactionsLoading.value = false;
         }
       };
 
@@ -240,6 +245,18 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
       const getContext = () => context;
 
+      const getTransactionIndex = (transactionId: string) => {
+        return transactions.value.findIndex(({ id }) => id === transactionId);
+      };
+
+      const updateTransaction = async (transaction: Transaction) => {
+        const transactionIndex = getTransactionIndex(transaction.id);
+
+        await changeTransactionInSpreadsheet(getContext(), transaction, transactionIndex + 1);
+
+        transactions.value[transactionIndex] = transaction;
+      };
+
       return {
         initialBalance,
         spendingCategoriesTitles,
@@ -263,6 +280,8 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
         getContext,
         checkYearExistanceInSpreadsheet,
         transactionsCount,
+        updateTransaction,
+        transactionsLoading,
       };
     },
     {
