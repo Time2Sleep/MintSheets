@@ -23,6 +23,7 @@ const emits = defineEmits<{
     role="button"
     tabindex="0"
     @click="emits('transaction-click', transaction)"
+    @keydown.enter="emits('transaction-click', transaction)"
   >
     <div>
       <div>{{ transaction.comment }}</div>
