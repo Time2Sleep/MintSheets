@@ -43,6 +43,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       const currency = ref<Currency>(CURRENCIES[0]);
       const analyticsData = ref<Record<number, number>>({});
       const analyticsWriteRunner = createSerializedTaskRunner();
+      const transactionRowsWriteRunner = createSerializedTaskRunner();
       const transactionsLoading = ref(true);
       const spendingCategoriesTitles = computed<string[]>(() => Object.keys(categories.value.spending));
       const incomeCategoriesTitles = computed<string[]>(() => Object.keys(categories.value.income));
@@ -58,11 +59,13 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
         const transactionId = crypto.randomUUID();
         const transactionToPush = { ...transactionData, id: transactionId };
-        pendingTransactions.value.unshift({ ...transactionToPush, pending: true });
 
         try {
-          await saveTransactionsToSpreadsheet(context, [transactionToPush]);
-          _setTransactionsConfirmed([transactionId]);
+          await transactionRowsWriteRunner.run(null, async () => {
+            pendingTransactions.value.unshift({ ...transactionToPush, pending: true });
+            await saveTransactionsToSpreadsheet(context, [transactionToPush]);
+            _setTransactionsConfirmed([transactionId]);
+          });
         } catch (error) {
           console.warn('[Finance Store] failed to send transaction to spreadsheet.', error);
         }
@@ -179,16 +182,20 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
       const syncLocalTransactions = async () => {
         try {
-          await getTransactions();
-          const { syncedIds, unsyncedIds } = await syncTransactions(
-            context,
-            transactions.value,
-            pendingTransactions.value,
-          );
+          await transactionRowsWriteRunner.run(null, async () => {
+            await getTransactions();
+            const { syncedIds, unsyncedIds } = await syncTransactions(
+              context,
+              transactions.value,
+              pendingTransactions.value,
+            );
 
-          if (unsyncedIds.length) console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
+            if (unsyncedIds.length) {
+              console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
+            }
 
-          _setTransactionsConfirmed(syncedIds);
+            _setTransactionsConfirmed(syncedIds);
+          });
         } catch (error) {
           console.warn('[Finance Store]: Failed to sync transactions.', error);
         }
@@ -252,26 +259,43 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
       };
 
       const updateTransaction = async (transaction: Transaction) => {
-        const transactionIndex = getTransactionIndex(transaction.id);
+        await transactionRowsWriteRunner.run(null, async () => {
+          const transactionIndex = getTransactionIndex(transaction.id);
 
-        if (transactionIndex < 0) throw new Error('[Finance Store] Transaction not found.');
+          if (transactionIndex < 0) {
+            const pendingIndex = pendingTransactions.value.findIndex(({ id }) => id === transaction.id);
 
-        await changeTransactionInSpreadsheet(context, transaction, transactionIndex + 1);
+            if (pendingIndex < 0) throw new Error('[Finance Store] Transaction not found.');
+            pendingTransactions.value[pendingIndex] = transaction;
+          }
 
-        transactions.value[transactionIndex] = transaction;
+          await changeTransactionInSpreadsheet(context, transaction, transactionIndex + 1);
+
+          transactions.value[transactionIndex] = transaction;
+        });
       };
 
       const deleteTransaction = async (transaction: Transaction) => {
-        const transactionIndex = getTransactionIndex(transaction.id);
+        await transactionRowsWriteRunner.run(null, async () => {
+          const transactionIndex = getTransactionIndex(transaction.id);
 
-        if (transactionIndex < 0) throw new Error('[Finance Store] Transaction not found.');
+          if (transactionIndex < 0) {
+            const pendingIndex = pendingTransactions.value.findIndex(({ id }) => id === transaction.id);
 
-        const { spreadsheetId, sheets } = context;
-        const tabId = sheets[SPREADSHEET_SCHEMA.transactionsTab.key];
+            if (pendingIndex < 0) throw new Error('[Finance Store] Transaction not found.');
 
-        await deleteRowsFromSpreadsheet(spreadsheetId, tabId, transactionIndex + 1, 1);
+            pendingTransactions.value.splice(pendingIndex, 1);
+            return;
+          }
 
-        transactions.value.splice(transactionIndex, 1);
+          const { spreadsheetId, sheets } = context;
+          const tabId = sheets[SPREADSHEET_SCHEMA.transactionsTab.key];
+          const startRowIndex = transactionIndex + 1;
+
+          await deleteRowsFromSpreadsheet(spreadsheetId, tabId, startRowIndex, 1);
+
+          transactions.value.splice(transactionIndex, 1);
+        });
       };
 
       return {
