@@ -68,7 +68,7 @@ onMounted(async () => {
       />
     </RouterLink>
 
-    <div ref="form" class="pb-4">
+    <div ref="form" class="pb-4" :inert="bottomSheetExpanded">
       <WrapperContainer
         :gap="3"
         class="transition-opacity duration-300 ease-in-out"

@@ -15,7 +15,7 @@ import { message } from 'vue-message-popup';
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
 const handleAuthError = (error: Error) => {
-  message.error('Authentication failed');
+  message.error(error.message);
   console.warn('[Auth] Google authentication failed:', error);
 
   const googleStore = useGoogleStore();

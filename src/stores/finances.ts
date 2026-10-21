@@ -193,6 +193,7 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
             if (unsyncedIds.length) {
               console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
+              message.error('Transactions sync failed');
             }
 
             _setTransactionsConfirmed(syncedIds);

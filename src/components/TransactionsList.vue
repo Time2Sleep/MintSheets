@@ -57,7 +57,7 @@ const handleDown = () => {
 };
 
 const checkScroll = () => {
-  if (!scrollableContainer.value || scrollableContainer.value.scrollTop !== 0) return;
+  if (!scrollableContainer.value || scrollableContainer.value.scrollTop > 0) return;
 
   handleDown();
 };
