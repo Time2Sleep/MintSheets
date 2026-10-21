@@ -26,10 +26,7 @@ const createSwipeDirective = (direction: 'up' | 'down'): Directive<SwipeHTMLElem
         }
 
         if (direction === 'down' && swipeDistance > MIN_SWIPE_DISTANCE) {
-          const scrollableContainer = el.querySelector('.overflow-y-auto') || el;
-          if (scrollableContainer.scrollTop === 0) {
-            binding.value();
-          }
+          binding.value();
         }
       };
 

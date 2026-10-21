@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { TransactionTypes, type Transaction } from '../../types/finances';
+import LoadingSpinner from './LoadingSpinner.vue';
 
 defineProps<{
   title: string;
@@ -30,9 +31,13 @@ const emits = defineEmits<{
       <div class="text-light-secondary text-xs">{{ transaction.category }}</div>
     </div>
 
-    <div class="text-xl" :class="{ 'text-green-primary': transaction.type === TransactionTypes.INCOME }">
-      <span>{{ transaction.type === TransactionTypes.INCOME ? '+' : '-' }}</span>
-      <span>{{ transaction.amount }} {{ currency }}</span>
+    <div
+      class="text-xl flex items-center whitespace-nowrap"
+      :class="{ 'text-green-primary': transaction.type === TransactionTypes.INCOME }"
+    >
+      <LoadingSpinner v-if="transaction.pending" class="mr-2" />
+      <div>{{ transaction.type === TransactionTypes.INCOME ? '+' : '-' }}</div>
+      <div>{{ transaction.amount }} {{ currency }}</div>
     </div>
   </div>
 </template>

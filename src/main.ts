@@ -6,6 +6,7 @@ import App from './App.vue';
 import { router } from './router';
 import { vSwipeDown, vSwipeUp } from './directives/swipe';
 import { initializeAuth } from './services/application.ts';
+import { messagePlugin } from 'vue-message-popup';
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
@@ -13,6 +14,7 @@ pinia.use(piniaPluginPersistedstate);
 const app = createApp(App);
 app.use(pinia);
 app.use(router);
+app.use(messagePlugin);
 app.directive('swipe-up', vSwipeUp);
 app.directive('swipe-down', vSwipeDown);
 app.mount('#app');

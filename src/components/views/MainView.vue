@@ -16,19 +16,19 @@ const { sessionStatus, userInfo } = storeToRefs(googleStore);
 const financeStore = useCurrentFinanceStore();
 const { monthSpending, monthIncome, currency } = storeToRefs(financeStore);
 
-const content = ref<HTMLElement | null>(null);
-
-const offsetHeight = ref(0);
-
 const bottomSheetExpanded = ref(false);
+const form = ref<HTMLElement>();
+const formHeight = ref(0);
 
-onMounted(() => {
-  offsetHeight.value = content.value?.offsetHeight || 0;
+onMounted(async () => {
+  if (!form.value) return;
+
+  formHeight.value = form.value.offsetHeight;
 });
 </script>
 
 <template>
-  <div ref="content">
+  <div>
     <div class="flex gap-4 items-center pb-3 pt-4">
       <h1 class="text-xl">Hello, {{ userInfo?.given_name || 'User' }}!</h1>
 
@@ -68,18 +68,20 @@ onMounted(() => {
       />
     </RouterLink>
 
-    <WrapperContainer
-      :gap="3"
-      class="mb-4 transition-opacity duration-300 ease-in-out"
-      :class="{ 'opacity-0': bottomSheetExpanded }"
-    >
-      <AddTransactionForm />
-    </WrapperContainer>
-  </div>
+    <div ref="form" class="pb-4">
+      <WrapperContainer
+        :gap="3"
+        class="transition-opacity duration-300 ease-in-out"
+        :class="{ 'opacity-0': bottomSheetExpanded }"
+      >
+        <AddTransactionForm />
+      </WrapperContainer>
+    </div>
 
-  <TransactionsList
-    v-if="offsetHeight"
-    :offset="offsetHeight"
-    @expand="(expanded) => (bottomSheetExpanded = expanded)"
-  />
+    <TransactionsList
+      :offset="formHeight"
+      @swipe-up="bottomSheetExpanded = true"
+      @swipe-down="bottomSheetExpanded = false"
+    />
+  </div>
 </template>

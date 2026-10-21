@@ -10,10 +10,12 @@ import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
 import { getUserInfo } from '../api/google';
 import { checkPopupBlocked } from '../utils/checkPopup';
 import { getSpreadsheetTabsIDs } from './tabs';
+import { message } from 'vue-message-popup';
 
 let logoutTimer: ReturnType<typeof setTimeout> | undefined;
 
 const handleAuthError = (error: Error) => {
+  message.error('Authentication failed');
   console.warn('[Auth] Google authentication failed:', error);
 
   const googleStore = useGoogleStore();
