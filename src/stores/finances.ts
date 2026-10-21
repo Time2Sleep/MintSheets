@@ -30,6 +30,7 @@ import { addYearToAnalyticsTab, getAnalyticsData } from '../services/analytics/s
 import { createSerializedTaskRunner } from '../utils/async';
 import { deleteRowsFromSpreadsheet } from '../services/tabs';
 import { SPREADSHEET_SCHEMA } from '../schemas/spreadsheet';
+import { message } from 'vue-message-popup';
 
 export const createFinanceStore = (initialContext: SpreadsheetContext) =>
   defineStore(
@@ -192,12 +193,15 @@ export const createFinanceStore = (initialContext: SpreadsheetContext) =>
 
             if (unsyncedIds.length) {
               console.log('[Finance Store]: Failed to sync transactions with IDs:', unsyncedIds);
+              message.error('Transactions sync failed');
             }
 
             _setTransactionsConfirmed(syncedIds);
           });
         } catch (error) {
           console.warn('[Finance Store]: Failed to sync transactions.', error);
+
+          message.error('Transactions sync failed');
         }
       };
 

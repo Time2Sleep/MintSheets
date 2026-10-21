@@ -3,11 +3,11 @@ import { storeToRefs } from 'pinia';
 import TransactionItem from './UI/TransactionItem.vue';
 import WrapperContainer from './UI/WrapperContainer.vue';
 import TransactionEditModal from './modals/TransactionEditModal.vue';
-import { onMounted, computed, ref } from 'vue';
 import { useCurrentFinanceStore } from '../stores/financeStoreRegistry';
 import { type Transaction } from '../types/finances';
 import { useAsyncAction } from '../composables/useAsyncAction';
 import LoadingSpinner from './UI/LoadingSpinner.vue';
+import { computed, ref } from 'vue';
 
 const financeStore = useCurrentFinanceStore();
 const { allTransactionsGrouped, currency, transactionsLoading } = storeToRefs(financeStore);
@@ -17,56 +17,9 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  (e: 'expand', expanded: boolean): void;
+  (e: 'swipe-up'): void;
+  (e: 'swipe-down'): void;
 }>();
-
-const isExpanded = ref(false);
-const content = ref<HTMLElement | null>(null);
-const contentHeight = ref(0);
-const isReady = ref(false);
-
-const style = computed(() => {
-  const SWIPE_HANDLE_HEIGHT = 40; //высота полоски для свайпа, которая находится сверху
-
-  if (!props.offset) {
-    return {
-      transform: `translateY(calc(100vh - ${SWIPE_HANDLE_HEIGHT}px))`,
-    };
-  }
-
-  if (isExpanded.value) {
-    return {
-      transform: `translateY(0px)`,
-    };
-  }
-
-  const offset = contentHeight.value + props.offset;
-
-  return {
-    transform: `translateY(calc(${offset}px - 100vh))`,
-  };
-});
-
-const scrollableContainer = ref<HTMLElement | null>(null);
-
-const handleExpand = () => {
-  isExpanded.value = true;
-  emits('expand', isExpanded.value);
-};
-
-const handleCollapse = () => {
-  isExpanded.value = false;
-  scrollableContainer.value?.scrollTo({ top: 0, behavior: 'smooth' });
-  emits('expand', isExpanded.value);
-};
-
-onMounted(() => {
-  contentHeight.value = content.value?.offsetHeight || 0;
-
-  setTimeout(() => {
-    isReady.value = true;
-  }, 50);
-});
 
 const modalTransaction = ref<Transaction>();
 const openModal = (transaction: Transaction) => {
@@ -87,19 +40,33 @@ const handleDelete = async (transaction: Transaction) => {
   modalTransaction.value = undefined;
   clearState();
 };
+
+const scrollableContainer = ref<HTMLElement>();
+const isScrollEnabled = ref(false);
+const listStyle = computed(() => (isScrollEnabled.value ? { transform: `translateY(-${props.offset}px)` } : ''));
+
+const handleUp = () => {
+  emits('swipe-up');
+  isScrollEnabled.value = true;
+};
+
+const handleDown = () => {
+  emits('swipe-down');
+  scrollableContainer.value?.scrollTo({ top: 0, behavior: 'smooth' });
+  isScrollEnabled.value = false;
+};
+
+const checkScroll = () => {
+  if (!scrollableContainer.value || scrollableContainer.value.scrollTop > 0) return;
+
+  handleDown();
+};
 </script>
 
 <template>
-  <div
-    ref="content"
-    v-swipe-up="handleExpand"
-    v-swipe-down="handleCollapse"
-    class="absolute bottom-0 z-10 left-0 w-full px-4"
-    :class="{ 'transition-transform duration-300 ease-in-out': isReady }"
-    :style="style"
-  >
+  <div v-swipe-up="handleUp" v-swipe-down="checkScroll" class="transition-all" :style="listStyle">
     <WrapperContainer class="flex-1 h-[calc(100dvh-180px)] rounded-br-none rounded-bl-none pt-0">
-      <div v-swipe-down="handleCollapse" class="py-4">
+      <div v-swipe-down="handleDown" class="py-4">
         <div class="h-[5px] min-h-[5px] mx-auto rounded bg-light-secondary w-[50px]"></div>
       </div>
 
@@ -110,8 +77,8 @@ const handleDelete = async (transaction: Transaction) => {
       <ul
         v-else
         ref="scrollableContainer"
-        class="flex flex-col gap-4"
-        :class="{ 'overflow-hidden': !isExpanded, 'overflow-y-auto': isExpanded }"
+        class="flex flex-col gap-4 overscroll-y-contain"
+        :class="{ 'overflow-hidden': !isScrollEnabled, 'overflow-y-auto': isScrollEnabled }"
       >
         <li v-for="(data, key) in allTransactionsGrouped" :key="key" class="block text-sm pb-2">
           <TransactionItem :title="key" :data="data" :currency="currency.symbol" @transaction-click="openModal" />

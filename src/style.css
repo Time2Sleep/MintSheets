@@ -14,7 +14,6 @@
 
 html,
 body {
-  overscroll-behavior-y: none;
   min-height: 100%;
 }
 
@@ -54,12 +53,25 @@ input[type='date']::-webkit-calendar-picker-indicator {
   -webkit-appearance: none;
 }
 
+.v-move,
 .v-enter-active,
 .v-leave-active {
-  transition: opacity 0.25s ease;
+  transition: all 0.25s ease;
 }
 
 .v-enter-from,
 .v-leave-to {
   opacity: 0;
+}
+
+.vue-popup-message_container {
+  padding-top: 15px;
+}
+.vue-popup-message_message-item {
+  background-color: var(--color-dark-secondary) !important;
+  color: var(--color-light-primary);
+  box-shadow:
+    0 6px 16px #ffffff0f,
+    0 3px 6px -4px #ffffff0f,
+    0 9px 28px 8px #ffffff0f;
 }
