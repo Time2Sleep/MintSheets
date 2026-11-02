@@ -1,3 +1,7 @@
+export const MONTHS = Array.from({ length: 12 }, (_, i) =>
+  new Date(new Date().getFullYear(), i).toLocaleString('en-US', { month: 'long' }),
+);
+
 export const getDateFormatted = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');

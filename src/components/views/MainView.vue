@@ -50,23 +50,25 @@ onMounted(async () => {
       </div>
     </div>
 
-    <RouterLink to="analytics" class="flex gap-3 mb-3">
-      <FinanceCard
-        class="flex-1"
-        title="Spending"
-        :value="monthSpending"
-        bar-color-class="bg-red-primary"
-        :currency="currency"
-      />
+    <div class="flex gap-3 mb-3">
+      <RouterLink :to="{ name: 'analytics', query: { type: 'spending' } }" class="flex-1">
+        <FinanceCard
+          title="Spending"
+          :value="monthSpending"
+          bar-color-class="bg-red-primary"
+          :currency="currency"
+        />
+      </RouterLink>
 
-      <FinanceCard
-        class="flex-1"
-        title="Income"
-        :value="monthIncome"
-        bar-color-class="bg-mint-primary"
-        :currency="currency"
-      />
-    </RouterLink>
+      <RouterLink :to="{ name: 'analytics', query: { type: 'income' } }" class="flex-1">
+        <FinanceCard
+          title="Income"
+          :value="monthIncome"
+          bar-color-class="bg-mint-primary"
+          :currency="currency"
+        />
+      </RouterLink>
+    </div>
 
     <div ref="form" class="pb-4" :inert="bottomSheetExpanded">
       <WrapperContainer
