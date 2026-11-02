@@ -75,3 +75,10 @@ input[type='date']::-webkit-calendar-picker-indicator {
     0 3px 6px -4px #ffffff0f,
     0 9px 28px 8px #ffffff0f;
 }
+
+.chart-container canvas {
+  image-rendering: -webkit-optimize-contrast; /* Для Safari */
+  image-rendering: crisp-edges; /* Общее свойство */
+  -webkit-font-smoothing: antialiased; /* Субпиксельное сглаживание */
+  -moz-osx-font-smoothing: grayscale;
+}
